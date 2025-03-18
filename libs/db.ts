@@ -5,15 +5,15 @@ const sequelize = new Sequelize(process.env.DB_URL || "", // Password
   {
     dialect: "mysql", // Sử dụng MySQL
     logging: true, // Tắt log SQL trong console
-    dialectOptions: {
-      connectTimeout: 60000 // เพิ่ม timeout 60 วินาที
-    },
-    pool: {
-      max: 10,
-      min: 0,
-      acquire: 60000, // 60 วินาที
-      idle: 10000 // 10 วินาที
-    }
+    // dialectOptions: {
+    //   connectTimeout: 60000 // เพิ่ม timeout 60 วินาที
+    // },
+    // pool: {
+    //   max: 10,
+    //   min: 0,
+    //   acquire: 60000, // 60 วินาที
+    //   idle: 10000 // 10 วินาที
+    // }
   });
 // const sequelize = new Sequelize('latda_shop', 'root', '', {
 //   host: 'localhost', // Change if using a remote server

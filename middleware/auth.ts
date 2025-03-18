@@ -15,6 +15,7 @@ export const authenticateToken = (req: Request, res: Response, next: () => void)
 
     try {
         const decoded: any = jwt.verify(token, process.env.JWT_SECRET || '');
+        (req as any).userid = decoded.userid;
         (req as any).username = decoded.username;
         (req as any).role = decoded.role;
         next();

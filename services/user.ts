@@ -1,5 +1,4 @@
 import User from "../models/user";
-import Role from "../models/role";
 
 export const _finUserByID = async (id: string) => {
     return await User.findByPk(id);

@@ -8,7 +8,8 @@ export const addToCart = async (req: Request, res: Response) => {
             res.status(401).json({ "status": "error", message: "request not data" })
             return;
         }
-        const cart = await _addToCart((req as any).username, barcode, qty, cart_name);
+        // console.log(req)
+        const cart = await _addToCart((req as any).userid, barcode.trim(), qty, cart_name);
         res.status(200).json(cart);
     } catch (error) {
         res.status(500).json({ error: error });

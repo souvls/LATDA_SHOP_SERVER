@@ -1,4 +1,5 @@
 
+import { QueryTypes } from "sequelize";
 import sequelize from "../libs/db";
 import Cart from "../models/cart";
 import CartDetail from "../models/cartdetsil";
@@ -52,7 +53,7 @@ const _createCartItem = async (cart_id: number, product: any, qty: number) => {
             const retail_lak = product.retail_lak > 0 ? product.retail_lak : product.retail_thb * exchang_rate;
             // console.log(product.retail_lak);
             // console.log(exchang_rate);
-            const discount = product.num_of_discount >= qty ? product.discount : 0;
+            const discount = (qty+item?.qty || 0) >= product.num_of_discount ? product.discount : 0;
             const total_unit_lak = retail_lak * qty;
             const total_lak = total_unit_lak - (total_unit_lak * discount / 100);
 
@@ -90,6 +91,20 @@ const _createCartItem = async (cart_id: number, product: any, qty: number) => {
         throw error;
     }
 }
+const _updateCart = async (cart_id: number) => {
+    try {
+        const updatecart = await sequelize.query(`
+            UPDATE cart
+            SET total_lak = (SELECT COALESCE(SUM(total_lak), 0) FROM cartdetail WHERE cart_id = ${cart_id}),
+	            total_thb = (SELECT COALESCE(SUM(total_thb), 0) FROM cartdetail WHERE cart_id = ${cart_id})
+            WHERE id = ${cart_id};
+            `,
+            { type: QueryTypes.UPDATE });
+        return updatecart;
+    } catch (error) {
+        throw error;
+    }
+}
 
 export const _addToCart = async (cashier_id: string, barcode: string, qty: number, cart_name: number) => {
     try {
@@ -104,16 +119,15 @@ export const _addToCart = async (cashier_id: string, barcode: string, qty: numbe
         if (product.status === "0") {
             return { status: "error", message: "ສິນຄ້າຢຸດຂາຍ" }
         }
-
         const cart: any = await _findCart(cashier_id, cart_name);
-        // console.log(cart)
-        //create cart
+
         if (!cart) {
             const newCart: any = await _createCart(cashier_id, cart_name);
             await _createCartItem(newCart.id, product, qty);
-
-        } else {
+        }
+        else {
             await _createCartItem(cart.id, product, qty);
+            // await _updateCart(cart.id);
         }
         return await _findCart(cashier_id, cart_name);
     } catch (error) {
