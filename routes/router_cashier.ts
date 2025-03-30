@@ -17,5 +17,6 @@ router.get("/findretail", controllerRetail.findProductRetail);
 router.post("/addtocart", controllerCart.addToCart)
 router.post("/cart/increase", controllerCart.increaseItem);
 router.post("/cart/decrease", controllerCart.decreaseItem);
+router.delete("/cart/clear", controllerCart.clearCart);
 
 export default router;

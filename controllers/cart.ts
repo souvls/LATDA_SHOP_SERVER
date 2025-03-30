@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { _addToCart, _decreaseItem, _increaseItem } from "../services/cart";
+import { _addToCart, _clearCart, _decreaseItem, _increaseItem } from "../services/cart";
 
 export const addToCart = async (req: Request, res: Response) => {
     try {
@@ -43,3 +43,15 @@ export const decreaseItem = async (req: Request, res: Response) => {
         res.status(500).json({ error: error });
     }
 };
+export const clearCart = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.query
+        if (!id) {
+            res.status(200).json({ "status": "error", message: `id is required` })
+        }
+        const clearCart = await _clearCart((req as any).userid, Number(id));
+        res.status(200).json({ "status": "ok", message: `clear cart is ${clearCart}` })
+    } catch (error) {
+        res.status(500).json({ error: error });
+    }
+}

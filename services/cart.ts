@@ -200,3 +200,17 @@ export const _decreaseItem = async (cashier_id: string, barcode: string, qty: nu
         throw error;
     }
 }
+export const _clearCart = async (cashier_id: string, id: number) => {
+    try {
+        const deleteCount: any = await Cart.destroy({
+            where: { id: id, cashier_id: cashier_id },
+        });
+        if (deleteCount > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        throw error
+    }
+}
