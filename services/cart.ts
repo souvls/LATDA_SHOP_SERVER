@@ -26,7 +26,7 @@ const _createCart = async (cashier_id: string, cart_name: number) => {
         throw error
     }
 }
-const _findCart = async (cashier_id: string, cart_name: number) => {
+export const _findCart = async (cashier_id: string, cart_name: number) => {
     try {
         const cart = await Cart.findOne({
             where: { cashier_id: cashier_id, cart_name: cart_name },

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { _addToCart, _clearCart, _decreaseItem, _increaseItem } from "../services/cart";
+import { _addToCart, _clearCart, _decreaseItem, _findCart, _increaseItem } from "../services/cart";
 
 export const addToCart = async (req: Request, res: Response) => {
     try {
@@ -50,7 +50,29 @@ export const clearCart = async (req: Request, res: Response) => {
             res.status(200).json({ "status": "error", message: `id is required` })
         }
         const clearCart = await _clearCart((req as any).userid, Number(id));
-        res.status(200).json({ "status": "ok", message: `clear cart is ${clearCart}` })
+        if (clearCart) {
+            res.status(200).json({ "status": "ok", message: `clear cart is ${clearCart}` })
+        } else {
+            res.status(200).json({ "status": "error", message: `do not have your cart id` })
+        }
+    } catch (error) {
+        res.status(500).json({ error: error });
+    }
+}
+export const findCartName = async (req: Request, res: Response) => {
+    try {
+        const { cart_name } = req.query
+        if (!cart_name) {
+            res.status(200).json({ "status": "error", message: "cart_name is required" })
+        }
+        const cart = await _findCart((req as any).userid, Number(cart_name));
+        if (cart) {
+            res.status(200).json(cart)
+        }else{
+            res.status(200).json({ "status": "error", message: cart })
+        }
+        // const clearCart = await _clearCart((req as any).userid, Number(id));
+        //res.status(200).json({ "status": "ok", message: `clear cart is ${clearCart}` })
     } catch (error) {
         res.status(500).json({ error: error });
     }
