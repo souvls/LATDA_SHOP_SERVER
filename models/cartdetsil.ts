@@ -6,6 +6,10 @@ import Product from "./product";
 interface CartDetailAttributes {
     cart_id: number,
     barcode: string;
+    size: string | "",
+    title: string,
+    use_for: string | "",
+    unit: string,
     cost_thb: number | 0;
     cost_lak: number | 0;
     wholesale_thb: number | 0;
@@ -29,7 +33,7 @@ CartDetail.init(
                 model: Cart,
                 key: "id",
             },
-            onDelete: "CASCADE", 
+            onDelete: "CASCADE",
             onUpdate: "CASCADE",
         },
         barcode: {
@@ -40,6 +44,10 @@ CartDetail.init(
                 key: "barcode",
             },
         },
+        size: { type: DataTypes.STRING, allowNull: true },
+        title: { type: DataTypes.STRING, allowNull: true },
+        use_for: { type: DataTypes.STRING, allowNull: true },
+        unit: { type: DataTypes.STRING, allowNull: true },
         cost_thb: { type: DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },
         cost_lak: { type: DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },
         wholesale_thb: { type: DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },

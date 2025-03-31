@@ -61,6 +61,10 @@ const _createCartItem = async (cart_id: number, product: any, qty: number) => {
             return await CartDetail.create({
                 cart_id: cart_id,
                 barcode: product.barcode,
+                title: product.title,
+                size: product.size,
+                use_for: product.use_for ,
+                unit: product.unit,
                 cost_thb: product.cost_thb,
                 cost_lak: product.cost_lak,
                 wholesale_lak: product.wholesale_lak,

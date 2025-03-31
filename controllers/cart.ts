@@ -68,11 +68,9 @@ export const findCartName = async (req: Request, res: Response) => {
         const cart = await _findCart((req as any).userid, Number(cart_name));
         if (cart) {
             res.status(200).json(cart)
-        }else{
+        } else {
             res.status(200).json({ "status": "error", message: cart })
         }
-        // const clearCart = await _clearCart((req as any).userid, Number(id));
-        //res.status(200).json({ "status": "ok", message: `clear cart is ${clearCart}` })
     } catch (error) {
         res.status(500).json({ error: error });
     }
