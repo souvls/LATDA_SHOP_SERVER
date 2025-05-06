@@ -1,4 +1,4 @@
-import { Op, Sequelize } from "sequelize";
+import { Op, Sequelize, where } from "sequelize";
 import Product from "../models/product";
 
 interface ProductAttributes {
@@ -76,6 +76,20 @@ export const _findProductByNo = async (No: string) => {
         return await Product.findAll({
             where: { No: No }
         });
+    } catch (error) {
+        throw error;
+    }
+}
+export const _checkoutProduct = async (barcode: string, qty: number) => {
+    try {
+        const product: any = await _findProductByID(barcode);
+        await Product.update(
+            {
+                qty_out: product.qty_out + qty,
+                qty_balance: product.qty_start + product.qty_in - (product.qty_out + qty)
+            },
+            { where: { barcode: barcode } }
+        )
     } catch (error) {
         throw error;
     }

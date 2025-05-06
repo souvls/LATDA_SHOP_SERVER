@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports._findProductByNo = exports._findProductByPage = exports._findProductByTitle = exports._findProductByCode = exports._findProductByID = exports._insertProduct = void 0;
+exports._checkoutProduct = exports._findProductByNo = exports._findProductByPage = exports._findProductByTitle = exports._findProductByCode = exports._findProductByID = exports._insertProduct = void 0;
 const sequelize_1 = require("sequelize");
 const product_1 = __importDefault(require("../models/product"));
 const _insertProduct = (product) => __awaiter(void 0, void 0, void 0, function* () {
@@ -82,3 +82,16 @@ const _findProductByNo = (No) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports._findProductByNo = _findProductByNo;
+const _checkoutProduct = (barcode, qty) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const product = yield (0, exports._findProductByID)(barcode);
+        yield product_1.default.update({
+            qty_out: product.qty_out + qty,
+            qty_balance: product.qty_start + product.qty_in - (product.qty_out + qty)
+        }, { where: { barcode: barcode } });
+    }
+    catch (error) {
+        throw error;
+    }
+});
+exports._checkoutProduct = _checkoutProduct;

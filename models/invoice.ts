@@ -1,25 +1,27 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../libs/db";
-import CartDetail from "./cartdetail";
 import User from "./user";
 
-interface CartAttributes {
+interface Attributes {
     id: number | null;
     cashier_id: string,
+    member_id: string | null,
     cart_type: number,
-    cart_name: number,
     total_unit_lak: number | 0,
     total_unit_thb: number | 0,
     total_lak: number | 0,
     total_thb: number | 0,
+    total_checkout_lak: number | 0,
+    total_checkout_thb: number | 0
     rate: number | 0,
     m_discount: number | 0,
+    pay_type: string,
+    date_create: string,
     status: string | '',
 }
+class Invoice extends Model<Attributes> { }
 
-class Cart extends Model<CartAttributes> { }
-
-Cart.init(
+Invoice.init(
     {
         id: {
             type: DataTypes.INTEGER,
@@ -34,10 +36,10 @@ Cart.init(
                 key: "id",
             },
         },
-        cart_type: {
-            type: DataTypes.INTEGER,
+        member_id:{
+            type: DataTypes.STRING,
         },
-        cart_name: {
+        cart_type: {
             type: DataTypes.INTEGER,
         },
         total_lak: {
@@ -52,11 +54,23 @@ Cart.init(
         total_unit_thb: {
             type: DataTypes.DOUBLE
         },
+        total_checkout_lak: {
+            type: DataTypes.DOUBLE
+        },
+        total_checkout_thb: {
+            type: DataTypes.DOUBLE
+        },
         rate: {
             type: DataTypes.DOUBLE,
         },
         m_discount: {
             type: DataTypes.DOUBLE
+        },
+        pay_type: {
+            type: DataTypes.STRING
+        },
+        date_create: {
+            type: DataTypes.DATE
         },
         status: {
             type: DataTypes.STRING,
@@ -64,11 +78,8 @@ Cart.init(
     },
     {
         sequelize,
-        tableName: "cart",
+        tableName: "invoice",
         timestamps: false,
     }
 );
-
-// User.hasMany(Cart, { foreignKey: "cashier_id", as: "cashier_id" });
-// Cart.belongsTo(User, { foreignKey: "id" });
-export default Cart;
+export default Invoice;

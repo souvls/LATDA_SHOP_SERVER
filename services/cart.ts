@@ -2,11 +2,9 @@
 import { QueryTypes } from "sequelize";
 import sequelize from "../libs/db";
 import Cart from "../models/cart";
-import CartDetail from "../models/cartdetsil";
-import Exchange from "../models/exchang";
+import CartDetail from "../models/cartdetail";
 import { _getExchange } from "./exchange";
 import { _findProductByID } from "./product";
-import Product from "../models/product";
 
 const _createCart = async (cashier_id: string, cart_name: number) => {
     try {
@@ -63,7 +61,7 @@ const _createCartItem = async (cart_id: number, product: any, qty: number) => {
                 barcode: product.barcode,
                 title: product.title,
                 size: product.size,
-                use_for: product.use_for ,
+                use_for: product.use_for,
                 unit: product.unit,
                 cost_thb: product.cost_thb,
                 cost_lak: product.cost_lak,
@@ -96,6 +94,25 @@ const _createCartItem = async (cart_id: number, product: any, qty: number) => {
         throw error;
     }
 }
+const _updateCart = async (cart_id: number) => {
+    const cart: any = await Cart.findByPk(cart_id, {
+        include: [{ model: CartDetail, as: "details" }]
+    });
+    const items = cart.details
+    var total_lak = 0;
+    var total_unit_lak = 0;
+
+    for (const i of items) {
+        total_lak += i.total_lak;
+        total_unit_lak += i.total_unit_lak
+    }
+    await Cart.update(
+        { total_lak: total_lak, total_unit_lak: total_unit_lak },
+        {
+            where: { id: cart_id },
+        }
+    );
+}
 export const _addToCart = async (cashier_id: string, barcode: string, qty: number, cart_name: number) => {
     try {
         const product: any = await _findProductByID(barcode);
@@ -106,6 +123,9 @@ export const _addToCart = async (cashier_id: string, barcode: string, qty: numbe
         if (product.qty_balance <= 0) {
             return { status: "error", message: "ສິນຄ້າເບິດ" }
         }
+        if (product.qty_balance - qty < 0) {
+            return { status: "error", message: "ສິນຄ້າບໍ່ພໍ" }
+        }
         if (product.status === "0") {
             return { status: "error", message: "ສິນຄ້າຢຸດຂາຍ" }
         }
@@ -114,10 +134,11 @@ export const _addToCart = async (cashier_id: string, barcode: string, qty: numbe
         if (!cart) {
             const newCart: any = await _createCart(cashier_id, cart_name);
             await _createCartItem(newCart.id, product, qty);
+            await _updateCart(newCart.id)
         }
         else {
             await _createCartItem(cart.id, product, qty);
-            // await _updateCart(cart.id);
+            await _updateCart(cart.id);
         }
         return await _findCart(cashier_id, cart_name);
     } catch (error) {
@@ -135,7 +156,7 @@ export const _increaseItem = async (cashier_id: string, barcode: string, qty: nu
         const [cartItem]: any = await sequelize.query(
             `select * from cart as c
             join cartdetail as cdt on c.id = cdt.cart_id
-            where c.cashier_id = ${cashier_id} AND c.cart_name = ${cart_name} AND cdt.barcode = ${barcode}
+            where c.cashier_id = '${cashier_id}' AND c.cart_name = ${cart_name} AND cdt.barcode = '${barcode}'
             limit 1
             `,
             { type: QueryTypes.SELECT });
@@ -159,12 +180,12 @@ export const _increaseItem = async (cashier_id: string, barcode: string, qty: nu
             total_lak = ${new_total_lak}
             where id = ${cartItem.id} and barcode = '${barcode}'`
         )
+        await _updateCart(cartItem.cart_id)
         return await _findCart(cashier_id, cart_name);
     } catch (error) {
         throw error;
     }
 }
-
 export const _decreaseItem = async (cashier_id: string, barcode: string, qty: number, cart_name: number) => {
     try {
         const product: any = await _findProductByID(barcode);
@@ -175,7 +196,7 @@ export const _decreaseItem = async (cashier_id: string, barcode: string, qty: nu
         const [cartItem]: any = await sequelize.query(
             `select * from cart as c
             join cartdetail as cdt on c.id = cdt.cart_id
-            where c.cashier_id = ${cashier_id} AND c.cart_name = ${cart_name} AND cdt.barcode = ${barcode}
+            where c.cashier_id = '${cashier_id}' AND c.cart_name = ${cart_name} AND cdt.barcode = '${barcode}'
             limit 1
             `,
             { type: QueryTypes.SELECT });
@@ -199,9 +220,39 @@ export const _decreaseItem = async (cashier_id: string, barcode: string, qty: nu
             total_lak = ${new_total_lak}
             where id = ${cartItem.id} and barcode = '${barcode}'`
         )
+        await _updateCart(cartItem.cart_id)
         return await _findCart(cashier_id, cart_name);
     } catch (error) {
         throw error;
+    }
+}
+export const _removeProductFromCart = async (cashier_id: string, barcode: string, cart_name: number) => {
+    try {
+        const [cartItem]: any = await sequelize.query(
+            `select * from cart as c
+            join cartdetail as cdt on c.id = cdt.cart_id
+            where c.cashier_id = '${cashier_id}' AND c.cart_name = ${cart_name} AND cdt.barcode = '${barcode}'
+            limit 1
+            `,
+            { type: QueryTypes.SELECT });
+        if (!cartItem) {
+            return { status: "error", message: "ບໍ່ພົບສິນຄ້າໃນກະຕ່າ" }
+        }
+
+        const deletedRows = await CartDetail.destroy({
+            where: {
+                cart_id: cartItem.cart_id,
+                barcode: barcode,
+            }
+        });
+        if (deletedRows > 0) {
+            await _updateCart(cartItem.cart_id);
+            return await _findCart(cashier_id, cart_name);
+        } else {
+            return { status: "error", message: "error" }
+        }
+    } catch (error) {
+        console.error(error);
     }
 }
 export const _clearCart = async (cashier_id: string, id: number) => {

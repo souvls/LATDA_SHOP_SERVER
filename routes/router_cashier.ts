@@ -3,7 +3,9 @@ import * as controllerProduct from '../controllers/products';
 import * as controllerRetail from '../controllers/retail';
 import * as controllerExchange from '../controllers/exchange';
 import * as controllerCart from '../controllers/cart'
+import * as controllerCheckout from '../controllers/checkout'
 const router = express.Router();
+
 router.get("/exchange", controllerExchange.getExcahnge)
 router.get("/productid", controllerProduct.findProductByID);
 router.get("/productcode", controllerProduct.findProductByCode);
@@ -19,6 +21,9 @@ router.post("/cart/increase", controllerCart.increaseItem);
 router.post("/cart/decrease", controllerCart.decreaseItem);
 router.delete("/cart/clear", controllerCart.clearCart);
 router.get("/cart", controllerCart.findCartName);
+router.post("/checkout/retail", controllerCheckout.retailCart);
+router.delete("/cart/delete", controllerCart.removeProductFromCart);
+
 
 
 export default router;

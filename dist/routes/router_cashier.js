@@ -41,6 +41,7 @@ const controllerProduct = __importStar(require("../controllers/products"));
 const controllerRetail = __importStar(require("../controllers/retail"));
 const controllerExchange = __importStar(require("../controllers/exchange"));
 const controllerCart = __importStar(require("../controllers/cart"));
+const controllerCheckout = __importStar(require("../controllers/checkout"));
 const router = express_1.default.Router();
 router.get("/exchange", controllerExchange.getExcahnge);
 router.get("/productid", controllerProduct.findProductByID);
@@ -51,4 +52,10 @@ router.get("/productno", controllerProduct.findProductByNo);
 router.get("/findretail", controllerRetail.findProductRetail);
 //cart
 router.post("/addtocart", controllerCart.addToCart);
+router.post("/cart/increase", controllerCart.increaseItem);
+router.post("/cart/decrease", controllerCart.decreaseItem);
+router.delete("/cart/clear", controllerCart.clearCart);
+router.get("/cart", controllerCart.findCartName);
+router.post("/checkout/retail", controllerCheckout.retailCart);
+router.delete("/cart/delete", controllerCart.removeProductFromCart);
 exports.default = router;

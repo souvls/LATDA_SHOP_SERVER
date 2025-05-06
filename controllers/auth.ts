@@ -11,7 +11,6 @@ export const Login = async (req: Request, res: Response) => {
             return;
         }
         const user: any = await _finUserByID(username);
-        console.log(user)
         if (!user) {
             res.status(401).json({ "status": "error", message: "ບໍ່ພົບຜູ້ໃຊ້" })
             return;

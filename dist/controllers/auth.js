@@ -21,7 +21,6 @@ const Login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return;
         }
         const user = yield (0, user_1._finUserByID)(username);
-        console.log(user);
         if (!user) {
             res.status(401).json({ "status": "error", message: "ບໍ່ພົບຜູ້ໃຊ້" });
             return;
