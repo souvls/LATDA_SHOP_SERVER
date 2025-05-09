@@ -12,7 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports._createInvoice = exports._findInvoiceByID = void 0;
+exports._createInvoice = exports._findAllInvoice = exports._cancleInvoice = exports._findInvoiceByID = void 0;
+const sequelize_1 = require("sequelize");
 const cart_1 = __importDefault(require("../models/cart"));
 const invoice_1 = __importDefault(require("../models/invoice"));
 const invoicedetail_1 = __importDefault(require("../models/invoicedetail"));
@@ -26,6 +27,50 @@ const _findInvoiceByID = (id) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports._findInvoiceByID = _findInvoiceByID;
+const _cancleInvoice = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const row = yield invoice_1.default.update({ status: "cancel" }, { where: { id: id } });
+        // console.log(row.length)
+        if (row.length == 1) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    catch (error) {
+    }
+});
+exports._cancleInvoice = _cancleInvoice;
+const _findAllInvoice = (_date_start, _date_end, _size, _page) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const page = (!_page || _page <= 0) ? 1 : _page;
+        const size = (!_size || _size <= 0) ? 100 : _size;
+        const date_start = _date_start ? _date_start : '2024-01-01';
+        const date_end = _date_end ? _date_end : new Date();
+        // Chuyển đổi date_start và date_end thành kiểu Date nếu cần
+        const invoices = yield invoice_1.default.findAndCountAll({
+            where: {
+                date_create: { [sequelize_1.Op.gte]: new Date(date_start), [sequelize_1.Op.lte]: new Date(`${date_end}T23:59:59`) }
+            },
+            limit: size, // Số lượng hóa đơn mỗi trang
+            offset: (page - 1) * size, // Tính offset cho phân trang (tính từ trang 1)
+            order: [['date_create', 'DESC']], // Sắp xếp theo ngày giảm dần
+            include: [{ model: invoicedetail_1.default, as: "details" }]
+        });
+        return {
+            invoices: invoices.rows, // Dữ liệu hóa đơn
+            total: invoices.count, // Tổng số hóa đơn thỏa mãn điều kiện
+            totalPages: Math.ceil(invoices.count / size), // Số trang
+            currentPage: page, // Trang hiện tại
+        };
+    }
+    catch (error) {
+        console.error('Error fetching invoices:', error);
+        throw new Error('Unable to fetch invoices');
+    }
+});
+exports._findAllInvoice = _findAllInvoice;
 const _createInvoice = (cart, member_id, m_discount, pay_type) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         //giam so luong

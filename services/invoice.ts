@@ -1,3 +1,4 @@
+import { Op, where } from "sequelize";
 import Cart from "../models/cart";
 import Invoice from "../models/invoice"
 import InvoiceDetail from "../models/invoicedetail";
@@ -13,6 +14,52 @@ export const _findInvoiceByID = async (id: number) => {
         throw error;
     }
 
+}
+export const _cancleInvoice = async (id: number) => {
+    try {
+        const row = await Invoice.update(
+            { status: "cancel" },
+            { where: { id: id } }
+        )
+        // console.log(row.length)
+        if (row.length == 1) {
+            return true
+        } else {
+            return false
+        }
+
+    } catch (error) {
+
+    }
+}
+export const _findAllInvoice = async (_date_start: string, _date_end: string, _size: number, _page: number) => {
+    try {
+        const page = (!_page || _page <= 0) ? 1 : _page;
+        const size = (!_size || _size <= 0) ? 100 : _size;
+        const date_start = _date_start ? _date_start : '2024-01-01'
+        const date_end = _date_end ? _date_end : new Date();
+        // Chuyển đổi date_start và date_end thành kiểu Date nếu cần
+
+        const invoices = await Invoice.findAndCountAll({
+            where: {
+                date_create: { [Op.gte]: new Date(date_start), [Op.lte]: new Date(`${date_end}T23:59:59`) }
+            },
+            limit: size, // Số lượng hóa đơn mỗi trang
+            offset: (page - 1) * size, // Tính offset cho phân trang (tính từ trang 1)
+            order: [['date_create', 'DESC']], // Sắp xếp theo ngày giảm dần
+            include: [{ model: InvoiceDetail, as: "details" }]
+        });
+
+        return {
+            invoices: invoices.rows, // Dữ liệu hóa đơn
+            total: invoices.count, // Tổng số hóa đơn thỏa mãn điều kiện
+            totalPages: Math.ceil(invoices.count / size), // Số trang
+            currentPage: page, // Trang hiện tại
+        };
+    } catch (error) {
+        console.error('Error fetching invoices:', error);
+        throw new Error('Unable to fetch invoices');
+    }
 }
 export const _createInvoice = async (cart: any, member_id: string, m_discount: number, pay_type: string) => {
     try {
@@ -67,11 +114,10 @@ export const _createInvoice = async (cart: any, member_id: string, m_discount: n
             await Cart.destroy({
                 where: { id: cart.id },
             });
-            const invoice =  await _findInvoiceByID(newInvoice.id);
+            const invoice = await _findInvoiceByID(newInvoice.id);
             return invoice;
         }
     } catch (error) {
         throw error;
     }
-
 }

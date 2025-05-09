@@ -42,6 +42,7 @@ const controllerRetail = __importStar(require("../controllers/retail"));
 const controllerExchange = __importStar(require("../controllers/exchange"));
 const controllerCart = __importStar(require("../controllers/cart"));
 const controllerCheckout = __importStar(require("../controllers/checkout"));
+const controllerInvoice = __importStar(require("../controllers/invoice"));
 const router = express_1.default.Router();
 router.get("/exchange", controllerExchange.getExcahnge);
 router.get("/productid", controllerProduct.findProductByID);
@@ -58,4 +59,8 @@ router.delete("/cart/clear", controllerCart.clearCart);
 router.get("/cart", controllerCart.findCartName);
 router.post("/checkout/retail", controllerCheckout.retailCart);
 router.delete("/cart/delete", controllerCart.removeProductFromCart);
+//invoice 
+router.post("/invoice", controllerInvoice.findAllInvoice);
+router.get("/invoice", controllerInvoice.findInvoiceByID);
+router.post("/invoice/cancel", controllerInvoice.cancleInvoice);
 exports.default = router;
