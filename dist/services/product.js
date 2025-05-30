@@ -12,9 +12,32 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports._checkoutProduct = exports._findProductByNo = exports._findProductByPage = exports._findProductByTitle = exports._findProductByCode = exports._findProductByID = exports._insertProduct = void 0;
+exports._checkoutProduct = exports._findProductByNo = exports._findProductByPage = exports._findProductByTitle = exports._findProductByCode = exports._findProductByID = exports._insertProduct = exports._findAllProduct = void 0;
 const sequelize_1 = require("sequelize");
 const product_1 = __importDefault(require("../models/product"));
+const _findAllProduct = (_size, _page) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const page = (!_page || _page <= 0) ? 1 : _page;
+        const size = (!_size || _size <= 0) ? 100 : _size;
+        const products = yield product_1.default.findAndCountAll({
+            limit: size, // Số lượng hóa đơn mỗi trang
+            offset: (page - 1) * size, // Tính offset cho phân trang (tính từ trang 1)
+            // order: [['date_create', 'DESC']], // Sắp xếp theo ngày giảm dần
+            // include: [{ model: , as: "details" }]
+        });
+        // console.log(products)
+        return {
+            products: products.rows, // Dữ liệu hóa đơn
+            total: products.count, // Tổng số hóa đơn thỏa mãn điều kiện
+            totalPages: Math.ceil(products.count / size), // Số trang
+            currentPage: page, // Trang hiện tại
+        };
+    }
+    catch (error) {
+        throw error;
+    }
+});
+exports._findAllProduct = _findAllProduct;
 const _insertProduct = (product) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         return yield product_1.default.create(product);

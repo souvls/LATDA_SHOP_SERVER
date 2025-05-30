@@ -10,7 +10,7 @@ const router = express.Router();
 router.post("/login", Login);
 
 
-router.use("/admin", router_admin);
+router.use("/admin", auth.authenticateToken,auth.authenticateAdmin, router_admin);
 router.use("/cashier", auth.authenticateToken, auth.authenticateCashier, router_cashier);
 // router.use("/cashier", router_cashier);
 

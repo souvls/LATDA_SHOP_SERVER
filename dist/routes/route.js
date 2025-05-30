@@ -43,7 +43,7 @@ const auth_1 = require("../controllers/auth");
 const auth = __importStar(require("../middleware/auth"));
 const router = express_1.default.Router();
 router.post("/login", auth_1.Login);
-router.use("/admin", route_admin_1.default);
+router.use("/admin", auth.authenticateToken, auth.authenticateAdmin, route_admin_1.default);
 router.use("/cashier", auth.authenticateToken, auth.authenticateCashier, router_cashier_1.default);
 // router.use("/cashier", router_cashier);
 exports.default = router;

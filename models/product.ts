@@ -9,6 +9,7 @@ interface ProductAttributes {
     size: string | null;
     title: string;
     use_for: string | null;
+    brand: string | null;
     unit: string;
     category: string;
     cost_thb: number | 0;
@@ -23,6 +24,9 @@ interface ProductAttributes {
     qty_in: number | 0;
     qty_out: number | 0;
     qty_balance: number | 0;
+    qty_alert: number | 0;
+    supplier: string | null;
+    img_name:string | null;
     status: string;
 }
 class Product extends Model<ProductAttributes> { }
@@ -39,6 +43,7 @@ Product.init(
         size: { type: DataTypes.STRING, allowNull: true },
         title: { type: DataTypes.STRING, allowNull: true },
         use_for: { type: DataTypes.STRING, allowNull: true },
+        brand: { type: DataTypes.STRING, allowNull: true },
         unit: { type: DataTypes.STRING, allowNull: true },
         category: { type: DataTypes.STRING, allowNull: true },
         cost_thb: { type: DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },
@@ -47,12 +52,15 @@ Product.init(
         wholesale_lak: { type: DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },
         retail_thb: { type: DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },
         retail_lak: { type: DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },
-        discount:{ type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
-        num_of_discount:{ type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
+        discount: { type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
+        num_of_discount: { type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
         qty_start: { type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
         qty_in: { type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
         qty_out: { type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
         qty_balance: { type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
+        qty_alert: { type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
+        supplier: { type: DataTypes.STRING, allowNull: true },
+        img_name: { type: DataTypes.STRING, allowNull: true },
         status: { type: DataTypes.STRING, allowNull: true },
     },
     {

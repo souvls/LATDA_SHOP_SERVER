@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findProductByNo = exports.findProductByPage = exports.findProductByTitle = exports.findProductByCode = exports.findProductByID = exports.AddProduct = void 0;
+exports.findProductByNo = exports.findProductByPage = exports.findProductByTitle = exports.findProductByCode = exports.findProductByID = exports.getAllProduct = exports.AddProduct = void 0;
 const product_1 = require("../services/product");
 const product_2 = __importDefault(require("../models/product"));
 const product_json_1 = __importDefault(require("../libs/data/product.json"));
@@ -47,6 +47,14 @@ const AddProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     res.status(201).json();
 });
 exports.AddProduct = AddProduct;
+const getAllProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { size, page } = req.query;
+    const products = yield (0, product_1._findAllProduct)(Number(size), Number(page));
+    if (products) {
+        res.status(200).json(products);
+    }
+});
+exports.getAllProduct = getAllProduct;
 const findProductByID = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { barcode } = req.query;
     try {

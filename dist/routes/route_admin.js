@@ -41,7 +41,6 @@ const controllerProduct = __importStar(require("../controllers/products"));
 const router = express_1.default.Router();
 router.get("/addproduct", controllerProduct.AddProduct);
 router.get("/productid", controllerProduct.findProductByID);
-router.get("/getuser", (req, res) => {
-    res.status(200).json({ 'stattus': 'ok', 'message': 'get user' });
-});
+router.get("/products", controllerProduct.getAllProduct);
+// 
 exports.default = router;
