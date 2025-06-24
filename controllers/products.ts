@@ -32,6 +32,7 @@ export const addProduct = async (req: Request, res: Response) => {
         supplier,
         status
     } = req.body;
+
     try {
         // if (!barcode) { return res.status(500).json({ error: "vilid barcodeF" }); }
         const product = await _findProductByID(barcode);

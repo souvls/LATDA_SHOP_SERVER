@@ -8,45 +8,123 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findProductByNo = exports.findProductByPage = exports.findProductByTitle = exports.findProductByCode = exports.findProductByID = exports.getAllProduct = exports.AddProduct = void 0;
+exports.findProductByNo = exports.findProductByPage = exports.findProductByTitle = exports.findProductByCode = exports.findProductByID = exports.getAllProduct = exports.updateProduct = exports.updateIMGProduct = exports.deleteProduct = exports.addProduct = void 0;
 const product_1 = require("../services/product");
-const product_2 = __importDefault(require("../models/product"));
-const product_json_1 = __importDefault(require("../libs/data/product.json"));
-const AddProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // const { id, username, password, name, phone, address, avatar, role } = req.body;
-    for (const i of product_json_1.default) {
-        yield product_2.default.create({
-            barcode: i.barcode,
-            page: i.page,
-            No: i.No,
-            code: i.code,
-            size: i.size,
-            title: i.title,
-            use_for: i.use_for,
-            unit: i.unit,
-            category: i.category,
-            cost_thb: Number(i.cost_thb),
-            cost_lak: Number(i.cost_lak),
-            wholesale_thb: Number(i.wholesale_thb),
-            wholesale_lak: Number(i.wholesale_lak),
-            retail_thb: Number(i.retail_thb),
-            retail_lak: Number(i.retail_lak),
-            discount: Number(i.discount),
-            num_of_discount: Number(i.num_of_discount),
-            qty_start: Number(i.qty_start),
-            qty_in: Number(i.qty_in),
-            qty_out: Number(i.qty_out),
-            qty_balance: Number(i.qty_balance),
-            status: ""
-        });
+const image_1 = require("../services/image");
+const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const { barcode, page, No, code, size, title, use_for, brand, unit, category, cost_thb, cost_lak, wholesale_thb, wholesale_lak, retail_thb, retail_lak, discount, num_of_discount, qty_start, qty_in, qty_out, qty_balance, qty_alert, supplier, status } = req.body;
+    const img_name = ((_a = req.file) === null || _a === void 0 ? void 0 : _a.filename) || null;
+    console.log("uploaded image filename:", img_name);
+    try {
+        // if (!barcode) { return res.status(500).json({ error: "vilid barcodeF" }); }
+        const product = yield (0, product_1._findProductByID)(barcode);
+        if (!product) {
+            const newProduct = yield (0, product_1._addProduct)({
+                barcode,
+                page,
+                No,
+                code,
+                size,
+                title,
+                use_for,
+                brand,
+                unit,
+                category,
+                cost_thb,
+                cost_lak,
+                wholesale_thb,
+                wholesale_lak,
+                retail_thb,
+                retail_lak,
+                discount,
+                num_of_discount,
+                qty_start,
+                qty_in,
+                qty_out,
+                qty_balance,
+                qty_alert,
+                supplier,
+                img_name: ((_b = req.file) === null || _b === void 0 ? void 0 : _b.filename) || null,
+                status
+            });
+            res.status(201).json({ "status": "success", "message": "ເພີ່ມສຳເລັດ", data: newProduct });
+        }
+        else {
+            res.status(200).json({ "status": "error", "message": "ມີສິນຄ້າແລ້ວ" });
+        }
     }
-    res.status(201).json();
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error });
+    }
 });
-exports.AddProduct = AddProduct;
+exports.addProduct = addProduct;
+const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { barcode } = req.query;
+    if (typeof barcode === "string" && barcode) {
+        try {
+            const product = yield (0, product_1._findProductByID)(barcode);
+            if (product) {
+                //delete product
+                const result = yield (0, product_1._deleteProduct)(barcode);
+                //delete img
+                if (product.img_name) {
+                    (0, image_1._removeIMG)(product.img_name);
+                }
+                res.status(200).json({ status: "success", message: "ລົບສຳເລັດ", data: result });
+            }
+            else {
+                res.status(200).json({ status: "error", message: "ບໍ່ພົນສິນຄ້າ", data: [] });
+            }
+        }
+        catch (error) {
+            res.status(500).json({ status: "error", message: "Failed to delete product", error });
+        }
+    }
+    else {
+        res.status(400).json({ status: "error", message: "Invalid or missing barcode" });
+    }
+});
+exports.deleteProduct = deleteProduct;
+const updateIMGProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const { barcode } = req.query;
+    const img_name = ((_a = req.file) === null || _a === void 0 ? void 0 : _a.filename) || null;
+    if (typeof barcode === "string" && barcode) {
+        const product = yield (0, product_1._findProductByID)(barcode);
+        if (product) {
+            const update = yield (0, product_1._updateIMGProduct)(barcode, img_name);
+            if (((_b = req.file) === null || _b === void 0 ? void 0 : _b.filename) !== null) {
+                if (product.img_name) {
+                    (0, image_1._removeIMG)(product.img_name);
+                }
+            }
+            ;
+            res.status(200).json({ status: "success", message: "ອັບເດດສຳເລັດ", data: update });
+        }
+        else {
+            res.status(200).json({ status: "error", message: "ບໍ່ພົນສິນຄ້າ", data: [] });
+        }
+    }
+});
+exports.updateIMGProduct = updateIMGProduct;
+const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { barcode } = req.query;
+    if (typeof barcode === "string" && barcode) {
+        const product = yield (0, product_1._findProductByID)(barcode);
+        if (product) {
+            console.log(req.body);
+            const update = yield (0, product_1._updateProduct)(barcode, req.body);
+            res.status(200).json({ status: "success", message: "ອັບເດດສຳເລັດ", data: update });
+        }
+        else {
+            res.status(200).json({ status: "error", message: "ບໍ່ພົນສິນຄ້າ", data: [] });
+        }
+    }
+});
+exports.updateProduct = updateProduct;
 const getAllProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { size, page } = req.query;
     const products = yield (0, product_1._findAllProduct)(Number(size), Number(page));

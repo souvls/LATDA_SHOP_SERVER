@@ -39,7 +39,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const controllerProduct = __importStar(require("../controllers/products"));
 const router = express_1.default.Router();
-router.get("/addproduct", controllerProduct.AddProduct);
+const multer_1 = __importDefault(require("multer"));
+const path_1 = __importDefault(require("path"));
+const storage = multer_1.default.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        const ext = path_1.default.extname(file.originalname);
+        const name = `${new Date().getTime()}${ext}`;
+        cb(null, name);
+    },
+});
+const upload = (0, multer_1.default)({ storage });
+//product 
+router.post("/product/add", upload.single('image'), controllerProduct.addProduct);
+router.put("/product/updateimg", upload.single('image'), controllerProduct.updateIMGProduct);
+router.patch("/product/update", controllerProduct.updateProduct);
+router.delete("/product/delete", controllerProduct.deleteProduct);
 router.get("/productid", controllerProduct.findProductByID);
 router.get("/products", controllerProduct.getAllProduct);
 // 
