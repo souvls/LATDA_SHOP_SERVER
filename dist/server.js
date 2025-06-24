@@ -19,13 +19,19 @@ const cors_1 = __importDefault(require("cors"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const db_1 = __importDefault(require("./libs/db"));
 const route_1 = __importDefault(require("./routes/route"));
+const path_1 = __importDefault(require("path"));
 //use file .env
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-app.use((0, morgan_1.default)('dev'));
+app.use((0, morgan_1.default)("dev"));
 app.use((0, cors_1.default)());
-app.use(body_parser_1.default.json({ limit: '50mb' }));
+app.use(body_parser_1.default.json({ limit: "50mb" }));
 app.use(express_1.default.json());
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express_1.default.static(path_1.default.resolve('uploads')));
+console.log("Serving /uploads from:", path_1.default.resolve('uploads'));
+// app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+// app.use("/images", express.static("uploads"));
 const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield db_1.default.authenticate();
@@ -38,10 +44,10 @@ const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
 connectDB();
 // ใช้ Route
 app.use("/api", route_1.default);
-app.get('/', (req, res) => {
-    res.status(200).json({ 'stattus': 'ok', 'message': 'welcome to latdashop-api' });
+app.get("/", (req, res) => {
+    res.status(200).json({ stattus: "ok", message: "welcome to latdashop-api" });
 });
 // ====> Run server
 app.listen(process.env.PORT, () => {
-    console.log('start server:' + ' http://localhost:' + process.env.PORT);
+    console.log("start server:" + " http://localhost:" + process.env.PORT);
 });
