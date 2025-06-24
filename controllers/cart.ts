@@ -15,7 +15,6 @@ export const addToCart = async (req: Request, res: Response) => {
         res.status(500).json({ error: error });
     }
 };
-
 export const increaseItem = async (req: Request, res: Response) => {
     try {
         const { barcode, qty, cart_name } = req.body
@@ -29,7 +28,6 @@ export const increaseItem = async (req: Request, res: Response) => {
         res.status(500).json({ error: error });
     }
 };
-
 export const decreaseItem = async (req: Request, res: Response) => {
     try {
         const { barcode, qty, cart_name } = req.body
