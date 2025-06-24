@@ -20,12 +20,10 @@ const upload = multer({ storage });
 //product 
 router.post("/product/add", upload.single('image'), controllerProduct.addProduct);
 router.put("/product/updateimg", upload.single('image'), controllerProduct.updateIMGProduct);
-
 router.patch("/product/update", controllerProduct.updateProduct);
-
-
 router.delete("/product/delete", controllerProduct.deleteProduct);
 router.get("/productid", controllerProduct.findProductByID);
 router.get("/products", controllerProduct.getAllProduct);
-// 
+
+//user 
 export default router;
