@@ -14,29 +14,39 @@ const invoice_1 = require("../services/invoice");
 const findInvoiceByID = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.query;
     const invoice = yield (0, invoice_1._findInvoiceByID)(Number(id));
-    res.status(200).json(invoice);
+    if (invoice) {
+        res.status(200).json({
+            invoices: [invoice],
+            total: 1,
+            totalPages: 1,
+            currentPage: 1,
+        });
+    }
+    else {
+        res.status(400).json({ "status": "error", message: "ບໍ່ມີບິນລະຫັດນີ້" });
+    }
 });
 exports.findInvoiceByID = findInvoiceByID;
 const findAllInvoice = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { date_start, date_end, size, page } = req.query;
-    const invoices = yield (0, invoice_1._findAllInvoice)(date_start, date_end, Number(size), Number(page));
+    const { date_start, date_end, size, page, pay_type } = req.query;
+    const invoices = yield (0, invoice_1._findAllInvoice)(date_start, date_end, Number(size), Number(page), pay_type);
     res.status(200).json(invoices);
 });
 exports.findAllInvoice = findAllInvoice;
 const cancleInvoice = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.body;
-    const invoice = yield (0, invoice_1._findInvoiceByID)(id);
+    const { id } = req.query;
+    const invoice = yield (0, invoice_1._findInvoiceByID)(Number(id));
     if (invoice) {
         if (invoice.status !== "cancel") {
-            yield (0, invoice_1._cancleInvoice)(id);
-            res.status(200).json({ "status": "ok", "message": "ຍົກເລີກສຳເລັດ" });
+            const cancelinvoice = yield (0, invoice_1._cancleInvoice)(Number(id));
+            res.status(200).json({ "status": "ok", "message": "ຍົກເລີກສຳເລັດ", invoice: cancelinvoice });
         }
         else {
-            res.status(200).json({ "status": "error", "message": "ໃບບິນຖືກຍົກເລີກແລ້ວ" });
+            res.status(400).json({ "status": "error", "message": "ໃບບິນຖືກຍົກເລີກແລ້ວ" });
         }
     }
     else {
-        res.status(200).json({ "status": "error", "message": "ບໍ່ສຳເລັດ id ບໍ່ຖືກ" });
+        res.status(400).json({ "status": "error", "message": "id ບໍ່ຖືກ" });
     }
 });
 exports.cancleInvoice = cancleInvoice;

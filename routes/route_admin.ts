@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import * as controllerProduct from '../controllers/products';
 import * as controllerUser from '../controllers/user';
 import * as controllerInvoice from '../controllers/invoice'
+// import { Dashboard } from '../controllers/dashboard';
+import * as controllerReport from '../controllers/report'
 const router = express.Router();
 import multer from 'multer';
 import path from 'path';
@@ -17,6 +19,9 @@ const storage = multer.diskStorage({
     },
 });
 const upload = multer({ storage });
+
+//report
+router.get("/sale-report",controllerReport.SaleReport)
 
 //product 
 router.post("/product/add", upload.single('image'), controllerProduct.addProduct);
@@ -34,8 +39,8 @@ router.put("/user/update", controllerUser.updateUser);
 router.delete("/user/delete", controllerUser.deleteUser);
 
 // invoice
-router.get("/invoices",controllerInvoice.findAllInvoice)
-router.get("/invoice",controllerInvoice.findInvoiceByID)
-router.delete("/invoice",controllerInvoice.cancleInvoice)
+router.get("/invoices", controllerInvoice.findAllInvoice)
+router.get("/invoice", controllerInvoice.findInvoiceByID)
+router.delete("/invoice", controllerInvoice.cancleInvoice)
 
 export default router;

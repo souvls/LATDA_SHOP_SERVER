@@ -32,7 +32,7 @@ const _cancleInvoice = (id) => __awaiter(void 0, void 0, void 0, function* () {
         const row = yield invoice_1.default.update({ status: "cancel" }, { where: { id: id } });
         // console.log(row.length)
         if (row.length == 1) {
-            return true;
+            return yield (0, exports._findInvoiceByID)(id);
         }
         else {
             return false;
@@ -42,32 +42,40 @@ const _cancleInvoice = (id) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports._cancleInvoice = _cancleInvoice;
-const _findAllInvoice = (_date_start, _date_end, _size, _page) => __awaiter(void 0, void 0, void 0, function* () {
+const _findAllInvoice = (_date_start, _date_end, _size, _page, _pay_type) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const page = (!_page || _page <= 0) ? 1 : _page;
         const size = (!_size || _size <= 0) ? 100 : _size;
-        const date_start = _date_start ? _date_start : '2024-01-01';
+        const date_start = _date_start ? _date_start : new Date();
         const date_end = _date_end ? _date_end : new Date();
-        // Chuyển đổi date_start và date_end thành kiểu Date nếu cần
+        // Khởi tạo điều kiện where
+        const whereClause = {
+            date_create: {
+                [sequelize_1.Op.gte]: new Date(date_start),
+                [sequelize_1.Op.lte]: new Date(`${date_end}T23:59:59`)
+            }
+        };
+        // Nếu có giá trị pay_type thì thêm vào điều kiện
+        if (_pay_type) {
+            whereClause.pay_type = _pay_type;
+        }
         const invoices = yield invoice_1.default.findAndCountAll({
-            where: {
-                date_create: { [sequelize_1.Op.gte]: new Date(date_start), [sequelize_1.Op.lte]: new Date(`${date_end}T23:59:59`) }
-            },
-            limit: size, // Số lượng hóa đơn mỗi trang
-            offset: (page - 1) * size, // Tính offset cho phân trang (tính từ trang 1)
-            order: [['date_create', 'DESC']], // Sắp xếp theo ngày giảm dần
+            where: whereClause,
+            limit: size,
+            offset: (page - 1) * size,
+            order: [['date_create', 'DESC']],
             include: [{ model: invoicedetail_1.default, as: "details" }]
         });
         return {
-            invoices: invoices.rows, // Dữ liệu hóa đơn
-            total: invoices.count, // Tổng số hóa đơn thỏa mãn điều kiện
-            totalPages: Math.ceil(invoices.count / size), // Số trang
-            currentPage: page, // Trang hiện tại
+            invoices: invoices.rows,
+            total: invoices.count,
+            totalPages: Math.ceil(invoices.count / size),
+            currentPage: page,
         };
     }
     catch (error) {
         console.error('Error fetching invoices:', error);
-        throw new Error('Unable to fetch invoices');
+        throw error;
     }
 });
 exports._findAllInvoice = _findAllInvoice;
@@ -96,7 +104,7 @@ const _createInvoice = (cart, member_id, m_discount, pay_type, money_received) =
             date_create: formattedDateTime,
             money_received: money_received,
             money_cash: money_received - cart.total_lak - m_discount,
-            status: ''
+            status: pay_type === 'debt' ? 'padding' : 'completed'
         });
         //
         if (newInvoice) {

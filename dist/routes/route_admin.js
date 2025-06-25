@@ -40,6 +40,8 @@ const express_1 = __importDefault(require("express"));
 const controllerProduct = __importStar(require("../controllers/products"));
 const controllerUser = __importStar(require("../controllers/user"));
 const controllerInvoice = __importStar(require("../controllers/invoice"));
+// import { Dashboard } from '../controllers/dashboard';
+const controllerReport = __importStar(require("../controllers/report"));
 const router = express_1.default.Router();
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
@@ -54,6 +56,8 @@ const storage = multer_1.default.diskStorage({
     },
 });
 const upload = (0, multer_1.default)({ storage });
+//report
+router.get("/sale-report", controllerReport.SaleReport);
 //product 
 router.post("/product/add", upload.single('image'), controllerProduct.addProduct);
 router.put("/product/updateimg", upload.single('image'), controllerProduct.updateIMGProduct);
@@ -69,4 +73,6 @@ router.put("/user/update", controllerUser.updateUser);
 router.delete("/user/delete", controllerUser.deleteUser);
 // invoice
 router.get("/invoices", controllerInvoice.findAllInvoice);
+router.get("/invoice", controllerInvoice.findInvoiceByID);
+router.delete("/invoice", controllerInvoice.cancleInvoice);
 exports.default = router;
