@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import * as controllerProduct from '../controllers/products';
-
+import * as controllerUser from '../controllers/user';
+import * as controllerInvoice from '../controllers/invoice'
 const router = express.Router();
 import multer from 'multer';
 import path from 'path';
@@ -26,4 +27,15 @@ router.get("/productid", controllerProduct.findProductByID);
 router.get("/products", controllerProduct.getAllProduct);
 
 //user 
+router.get("/user", controllerUser.getUserByID);
+router.get("/users", controllerUser.getAll);
+router.post("/user/add", controllerUser.createUser);
+router.put("/user/update", controllerUser.updateUser);
+router.delete("/user/delete", controllerUser.deleteUser);
+
+// invoice
+router.get("/invoices",controllerInvoice.findAllInvoice)
+router.get("/invoice",controllerInvoice.findInvoiceByID)
+router.delete("/invoice",controllerInvoice.cancleInvoice)
+
 export default router;

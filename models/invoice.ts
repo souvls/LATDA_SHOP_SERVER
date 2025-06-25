@@ -17,6 +17,8 @@ interface Attributes {
     m_discount: number | 0,
     pay_type: string,
     date_create: string,
+    money_received: number,
+    money_cash: number,
     status: string | '',
 }
 class Invoice extends Model<Attributes> { }
@@ -36,7 +38,7 @@ Invoice.init(
                 key: "id",
             },
         },
-        member_id:{
+        member_id: {
             type: DataTypes.STRING,
         },
         cart_type: {
@@ -71,6 +73,12 @@ Invoice.init(
         },
         date_create: {
             type: DataTypes.DATE
+        },
+        money_received: {
+            type: DataTypes.DOUBLE
+        },
+        money_cash: {
+            type: DataTypes.DOUBLE
         },
         status: {
             type: DataTypes.STRING,

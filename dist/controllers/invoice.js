@@ -18,8 +18,8 @@ const findInvoiceByID = (req, res) => __awaiter(void 0, void 0, void 0, function
 });
 exports.findInvoiceByID = findInvoiceByID;
 const findAllInvoice = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { date_start, date_end, size, page } = req.body;
-    const invoices = yield (0, invoice_1._findAllInvoice)(date_start, date_end, size, page);
+    const { date_start, date_end, size, page } = req.query;
+    const invoices = yield (0, invoice_1._findAllInvoice)(date_start, date_end, Number(size), Number(page));
     res.status(200).json(invoices);
 });
 exports.findAllInvoice = findAllInvoice;

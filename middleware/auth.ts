@@ -28,7 +28,7 @@ export const authenticateToken = (req: Request, res: Response, next: () => void)
 };
 
 export const authenticateAdmin = (req: Request, res: Response, next: () => void) => {
-    if ((req as any).role !== 1) {
+    if ((req as any).role !== 0) {
         res.status(401).json({
             status: 'error',
             message: 'no token',

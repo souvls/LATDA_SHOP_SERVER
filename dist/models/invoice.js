@@ -58,6 +58,12 @@ Invoice.init({
     date_create: {
         type: sequelize_1.DataTypes.DATE
     },
+    money_received: {
+        type: sequelize_1.DataTypes.DOUBLE
+    },
+    money_cash: {
+        type: sequelize_1.DataTypes.DOUBLE
+    },
     status: {
         type: sequelize_1.DataTypes.STRING,
     }

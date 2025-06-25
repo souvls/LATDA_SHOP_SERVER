@@ -38,6 +38,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const controllerProduct = __importStar(require("../controllers/products"));
+const controllerUser = __importStar(require("../controllers/user"));
+const controllerInvoice = __importStar(require("../controllers/invoice"));
 const router = express_1.default.Router();
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
@@ -59,5 +61,12 @@ router.patch("/product/update", controllerProduct.updateProduct);
 router.delete("/product/delete", controllerProduct.deleteProduct);
 router.get("/productid", controllerProduct.findProductByID);
 router.get("/products", controllerProduct.getAllProduct);
-// 
+//user 
+router.get("/user", controllerUser.getUserByID);
+router.get("/users", controllerUser.getAll);
+router.post("/user/add", controllerUser.createUser);
+router.put("/user/update", controllerUser.updateUser);
+router.delete("/user/delete", controllerUser.deleteUser);
+// invoice
+router.get("/invoices", controllerInvoice.findAllInvoice);
 exports.default = router;

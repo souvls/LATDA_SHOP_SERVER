@@ -71,7 +71,7 @@ const _findAllInvoice = (_date_start, _date_end, _size, _page) => __awaiter(void
     }
 });
 exports._findAllInvoice = _findAllInvoice;
-const _createInvoice = (cart, member_id, m_discount, pay_type) => __awaiter(void 0, void 0, void 0, function* () {
+const _createInvoice = (cart, member_id, m_discount, pay_type, money_received) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         //giam so luong
         const currentDate = new Date();
@@ -94,6 +94,8 @@ const _createInvoice = (cart, member_id, m_discount, pay_type) => __awaiter(void
             m_discount: m_discount,
             pay_type: pay_type,
             date_create: formattedDateTime,
+            money_received: money_received,
+            money_cash: money_received - cart.total_lak - m_discount,
             status: ''
         });
         //

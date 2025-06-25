@@ -23,7 +23,7 @@ export const _cancleInvoice = async (id: number) => {
         )
         // console.log(row.length)
         if (row.length == 1) {
-            return true
+            return await _findInvoiceByID(id);
         } else {
             return false
         }
@@ -32,37 +32,48 @@ export const _cancleInvoice = async (id: number) => {
 
     }
 }
-export const _findAllInvoice = async (_date_start: string, _date_end: string, _size: number, _page: number) => {
+export const _findAllInvoice = async (_date_start: string, _date_end: string, _size: number, _page: number, _pay_type?: string) => {
     try {
         const page = (!_page || _page <= 0) ? 1 : _page;
         const size = (!_size || _size <= 0) ? 100 : _size;
-        const date_start = _date_start ? _date_start : '2024-01-01'
+        const date_start = _date_start ? _date_start : new Date();
         const date_end = _date_end ? _date_end : new Date();
-        // Chuyển đổi date_start và date_end thành kiểu Date nếu cần
+
+        // Khởi tạo điều kiện where
+        const whereClause: any = {
+            date_create: {
+                [Op.gte]: new Date(date_start),
+                [Op.lte]: new Date(`${date_end}T23:59:59`)
+            }
+        };
+
+        // Nếu có giá trị pay_type thì thêm vào điều kiện
+        if (_pay_type) {
+            whereClause.pay_type = _pay_type;
+        }
 
         const invoices = await Invoice.findAndCountAll({
-            where: {
-                date_create: { [Op.gte]: new Date(date_start), [Op.lte]: new Date(`${date_end}T23:59:59`) }
-            },
-            limit: size, // Số lượng hóa đơn mỗi trang
-            offset: (page - 1) * size, // Tính offset cho phân trang (tính từ trang 1)
-            order: [['date_create', 'DESC']], // Sắp xếp theo ngày giảm dần
+            where: whereClause,
+            limit: size,
+            offset: (page - 1) * size,
+            order: [['date_create', 'DESC']],
             include: [{ model: InvoiceDetail, as: "details" }]
         });
 
         return {
-            invoices: invoices.rows, // Dữ liệu hóa đơn
-            total: invoices.count, // Tổng số hóa đơn thỏa mãn điều kiện
-            totalPages: Math.ceil(invoices.count / size), // Số trang
-            currentPage: page, // Trang hiện tại
+            invoices: invoices.rows,
+            total: invoices.count,
+            totalPages: Math.ceil(invoices.count / size),
+            currentPage: page,
         };
     } catch (error) {
         console.error('Error fetching invoices:', error);
-        throw new Error('Unable to fetch invoices');
+        throw error
     }
 }
-export const _createInvoice = async (cart: any, member_id: string, m_discount: number, pay_type: string) => {
+export const _createInvoice = async (cart: any, member_id: string, m_discount: number, pay_type: string, money_received: number) => {
     try {
+
         //giam so luong
         const currentDate = new Date();
         // Điều chỉnh múi giờ Lào (UTC+7)
@@ -86,7 +97,9 @@ export const _createInvoice = async (cart: any, member_id: string, m_discount: n
             m_discount: m_discount,
             pay_type: pay_type,
             date_create: formattedDateTime,
-            status: ''
+            money_received: money_received,
+            money_cash: money_received - cart.total_lak - m_discount,
+            status: pay_type === 'debt' ? 'padding' : 'completed'
         })
         //
         if (newInvoice) {

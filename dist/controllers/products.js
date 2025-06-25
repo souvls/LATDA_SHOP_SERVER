@@ -13,10 +13,8 @@ exports.findProductByNo = exports.findProductByPage = exports.findProductByTitle
 const product_1 = require("../services/product");
 const image_1 = require("../services/image");
 const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a;
     const { barcode, page, No, code, size, title, use_for, brand, unit, category, cost_thb, cost_lak, wholesale_thb, wholesale_lak, retail_thb, retail_lak, discount, num_of_discount, qty_start, qty_in, qty_out, qty_balance, qty_alert, supplier, status } = req.body;
-    const img_name = ((_a = req.file) === null || _a === void 0 ? void 0 : _a.filename) || null;
-    console.log("uploaded image filename:", img_name);
     try {
         // if (!barcode) { return res.status(500).json({ error: "vilid barcodeF" }); }
         const product = yield (0, product_1._findProductByID)(barcode);
@@ -46,7 +44,7 @@ const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 qty_balance,
                 qty_alert,
                 supplier,
-                img_name: ((_b = req.file) === null || _b === void 0 ? void 0 : _b.filename) || null,
+                img_name: ((_a = req.file) === null || _a === void 0 ? void 0 : _a.filename) || null,
                 status
             });
             res.status(201).json({ "status": "success", "message": "ເພີ່ມສຳເລັດ", data: newProduct });
