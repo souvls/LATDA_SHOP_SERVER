@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findProductByNo = exports.findProductByPage = exports.findProductByTitle = exports.findProductByCode = exports.findProductByID = exports.getAllProduct = exports.updateProduct = exports.updateIMGProduct = exports.deleteProduct = exports.addProduct = void 0;
+exports.findProduct = exports.findProductByNo = exports.findProductByPage = exports.findProductByTitle = exports.findProductByCode = exports.findProductByID = exports.getAllProduct = exports.updateProduct = exports.updateIMGProduct = exports.deleteProduct = exports.addProduct = void 0;
 const product_1 = require("../services/product");
 const image_1 = require("../services/image");
 const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -211,3 +211,50 @@ const findProductByNo = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.findProductByNo = findProductByNo;
+const findProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { barcode, title, code, page, No, qty } = req.query;
+    try {
+        const products = [];
+        if (barcode) {
+            const pd = yield (0, product_1._findProductByIDMath)(barcode);
+            if (pd && pd.length > 0) {
+                products.push(...pd);
+            }
+        }
+        if (title) {
+            const pd = yield (0, product_1._findProductByTitle)(title);
+            if (pd && pd.length > 0) {
+                products.push(...pd);
+            }
+        }
+        if (code) {
+            const pd = yield (0, product_1._findProductByCode)(code);
+            if (pd && pd.length > 0) {
+                products.push(...pd);
+            }
+        }
+        if (page) {
+            const pd = yield (0, product_1._findProductByPage)(page);
+            if (pd && pd.length > 0) {
+                products.push(...pd);
+            }
+        }
+        if (No) {
+            const pd = yield (0, product_1._findProductByNo)(No);
+            if (pd && pd.length > 0) {
+                products.push(...pd);
+            }
+        }
+        if (qty) {
+            const pd = yield (0, product_1._findProductByAlertQty)(Number(qty));
+            if (pd && pd.length > 0) {
+                products.push(...pd);
+            }
+        }
+        res.status(200).json(products);
+    }
+    catch (error) {
+        res.status(500).json({ error: error });
+    }
+});
+exports.findProduct = findProduct;

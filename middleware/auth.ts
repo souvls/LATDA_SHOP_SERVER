@@ -28,14 +28,15 @@ export const authenticateToken = (req: Request, res: Response, next: () => void)
 };
 
 export const authenticateAdmin = (req: Request, res: Response, next: () => void) => {
-    if ((req as any).role !== 0) {
+    if ((req as any).role === 0 || (req as any).role === 1) {
+        next();
+    } else {
         res.status(401).json({
             status: 'error',
             message: 'no token',
         });
         return
     }
-    next();
 
 }
 export const authenticateCashier = (req: Request, res: Response, next: () => void) => {

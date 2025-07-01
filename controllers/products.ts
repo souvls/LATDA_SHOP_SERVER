@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { _addProduct, _deleteProduct, _findAllProduct, _findProductByCode, _findProductByID, _findProductByNo, _findProductByPage, _findProductByTitle, _insertProduct, _updateIMGProduct, _updateProduct } from "../services/product";
+import { _addProduct, _deleteProduct, _findAllProduct, _findProductByAlertQty, _findProductByCode, _findProductByID, _findProductByIDMath, _findProductByNo, _findProductByPage, _findProductByTitle, _insertProduct, _updateIMGProduct, _updateProduct } from "../services/product";
 import path from "path";
 import fs from 'fs';
 import { _removeIMG } from "../services/image";
@@ -201,6 +201,52 @@ export const findProductByNo = async (req: Request, res: Response) => {
         } else {
             res.status(200).json([]);
         }
+    } catch (error) {
+        res.status(500).json({ error: error });
+    }
+};
+export const findProduct = async (req: Request, res: Response) => {
+    const { barcode, title, code, page, No, qty } = req.query;
+    try {
+        const products = [];
+
+        if (barcode) {
+            const pd = await _findProductByIDMath(barcode as string);
+            if (pd && pd.length > 0) { 
+                products.push(...pd);
+            }
+        }
+        if (title) {
+            const pd = await _findProductByTitle(title as string);
+            if (pd && pd.length > 0) { 
+                products.push(...pd);
+            }
+        }
+        if (code) {
+            const pd = await _findProductByCode(code as string);
+            if (pd && pd.length > 0) { 
+                products.push(...pd);
+            }
+        }
+        if (page) {
+            const pd = await _findProductByPage(page as string)
+            if (pd && pd.length > 0) { 
+                products.push(...pd);
+            }
+        }
+        if (No) {
+            const pd = await _findProductByNo(No as string);
+            if (pd && pd.length > 0) { 
+                products.push(...pd);
+            }
+        }
+        if (qty) {
+            const pd = await _findProductByAlertQty(Number(qty));
+            if (pd && pd.length > 0) { 
+                products.push(...pd);
+            }
+        }
+        res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ error: error });
     }

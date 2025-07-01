@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports._checkoutProduct = exports._findProductByNo = exports._findProductByPage = exports._findProductByTitle = exports._findProductByCode = exports._findProductByID = exports._insertProduct = exports._findAllProduct = exports._deleteProduct = exports._updateIMGProduct = exports._updateProduct = exports._addProduct = void 0;
+exports._findProductByAlertQty = exports._checkoutProduct = exports._findProductByNo = exports._findProductByPage = exports._findProductByTitle = exports._findProductByCode = exports._findProductByIDMath = exports._findProductByID = exports._insertProduct = exports._findAllProduct = exports._deleteProduct = exports._updateIMGProduct = exports._updateProduct = exports._addProduct = void 0;
 const sequelize_1 = require("sequelize");
 const product_1 = __importDefault(require("../models/product"));
 const _addProduct = (product) => __awaiter(void 0, void 0, void 0, function* () {
@@ -93,6 +93,21 @@ const _findProductByID = (barcode) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports._findProductByID = _findProductByID;
+const _findProductByIDMath = (barcode) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        return yield product_1.default.findAll({
+            where: {
+                barcode: {
+                    [sequelize_1.Op.like]: `%${barcode}%`
+                }
+            }
+        });
+    }
+    catch (error) {
+        throw error;
+    }
+});
+exports._findProductByIDMath = _findProductByIDMath;
 const _findProductByCode = (code) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         return yield product_1.default.findAll({
@@ -154,3 +169,14 @@ const _checkoutProduct = (barcode, qty) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports._checkoutProduct = _checkoutProduct;
+const _findProductByAlertQty = (qty) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        return yield product_1.default.findAll({
+            where: { qty_alert: qty },
+        });
+    }
+    catch (error) {
+        throw error;
+    }
+});
+exports._findProductByAlertQty = _findProductByAlertQty;

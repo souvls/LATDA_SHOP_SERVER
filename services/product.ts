@@ -129,6 +129,22 @@ export const _findProductByID = async (barcode: string) => {
     throw error;
   }
 };
+export const _findProductByIDMath = async (barcode: string) => {
+  try {
+    return  await Product.findAll({
+      where: {
+        barcode: {
+          [Op.like]: `%${barcode}%`
+          
+        }
+      }
+    });
+  } catch (error) {
+    throw error;
+  }
+
+
+}
 export const _findProductByCode = async (code: string) => {
   try {
     return await Product.findAll({
@@ -184,3 +200,12 @@ export const _checkoutProduct = async (barcode: string, qty: number) => {
     throw error;
   }
 };
+export const _findProductByAlertQty = async (qty: number) => {
+  try {
+    return await Product.findAll({
+      where: { qty_alert: qty },
+    });
+  } catch (error) {
+    throw error;
+  }
+}

@@ -31,14 +31,16 @@ const authenticateToken = (req, res, next) => {
 };
 exports.authenticateToken = authenticateToken;
 const authenticateAdmin = (req, res, next) => {
-    if (req.role !== 0) {
+    if (req.role === 0 || req.role === 1) {
+        next();
+    }
+    else {
         res.status(401).json({
             status: 'error',
             message: 'no token',
         });
         return;
     }
-    next();
 };
 exports.authenticateAdmin = authenticateAdmin;
 const authenticateCashier = (req, res, next) => {
