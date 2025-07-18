@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cancleInvoice = exports.findAllInvoice = exports.findInvoiceByID = void 0;
+exports.cancleInvoiceCashier = exports.findAllInvoiceCashier = exports.changestatus = exports.cancleInvoice = exports.findAllInvoice = exports.findInvoiceByID = void 0;
 const invoice_1 = require("../services/invoice");
 const findInvoiceByID = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.query;
@@ -50,3 +50,45 @@ const cancleInvoice = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.cancleInvoice = cancleInvoice;
+const changestatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, status } = req.query;
+    if (!id || !status) {
+        res.status(400).json({ "status": "error", "message": "vilidate id, status" });
+        return;
+    }
+    try {
+        const newInvoice = yield (0, invoice_1._changeStatus)(Number(id), status);
+        if (newInvoice.status !== "no") {
+            res.status(200).json(newInvoice);
+        }
+        else {
+            res.status(400).json(newInvoice);
+        }
+    }
+    catch (error) {
+    }
+});
+exports.changestatus = changestatus;
+const findAllInvoiceCashier = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { date_start, date_end, size, page } = req.query;
+    const invoices = yield (0, invoice_1._findAllInvoiceCashier)(req.userid, date_start, date_end, Number(size), Number(page));
+    res.status(200).json(invoices);
+});
+exports.findAllInvoiceCashier = findAllInvoiceCashier;
+const cancleInvoiceCashier = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.query;
+    const invoice = yield (0, invoice_1._findInvoiceByID)(Number(id));
+    if (invoice.cashier_id === req.userid) {
+        if (invoice.status !== "cancel") {
+            const cancelinvoice = yield (0, invoice_1._cancleInvoice)(Number(id));
+            res.status(200).json({ "status": "ok", "message": "ຍົກເລີກສຳເລັດ", invoice: cancelinvoice });
+        }
+        else {
+            res.status(400).json({ "status": "error", "message": "ໃບບິນຖືກຍົກເລີກແລ້ວ" });
+        }
+    }
+    else {
+        res.status(400).json({ "status": "error", "message": "id ບໍ່ຖືກ" });
+    }
+});
+exports.cancleInvoiceCashier = cancleInvoiceCashier;

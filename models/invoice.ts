@@ -17,6 +17,7 @@ interface Attributes {
     m_discount: number | 0,
     pay_type: string,
     date_create: string,
+    date_payment: string | "",
     money_received: number,
     money_cash: number,
     status: string | '',
@@ -70,6 +71,9 @@ Invoice.init(
         },
         pay_type: {
             type: DataTypes.STRING
+        },
+        date_payment: {
+            type: DataTypes.DATE
         },
         date_create: {
             type: DataTypes.DATE

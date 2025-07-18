@@ -9,12 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findProduct = exports.findProductByNo = exports.findProductByPage = exports.findProductByTitle = exports.findProductByCode = exports.findProductByID = exports.getAllProduct = exports.updateProduct = exports.updateIMGProduct = exports.deleteProduct = exports.addProduct = void 0;
+exports.resetQty = exports.findProduct = exports.findProductByNo = exports.findProductByPage = exports.findProductByTitle = exports.findProductByCode = exports.findProductByID = exports.getAllProduct = exports.updateProduct = exports.updateIMGProduct = exports.deleteProduct = exports.increaseProduct = exports.addProduct = void 0;
 const product_1 = require("../services/product");
 const image_1 = require("../services/image");
 const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const { barcode, page, No, code, size, title, use_for, brand, unit, category, cost_thb, cost_lak, wholesale_thb, wholesale_lak, retail_thb, retail_lak, discount, num_of_discount, qty_start, qty_in, qty_out, qty_balance, qty_alert, supplier, status } = req.body;
+    const { barcode, page, No, code, size, title, use_for, brand, unit, category, cost_thb, cost_lak, wholesale_thb, wholesale_lak, retail_thb, retail_lak, discount, num_of_discount, qty_start, qty_in, qty_out, qty_balance, qty_alert, supplier,
+    // status
+     } = req.body;
     try {
         // if (!barcode) { return res.status(500).json({ error: "vilid barcodeF" }); }
         const product = yield (0, product_1._findProductByID)(barcode);
@@ -45,7 +47,7 @@ const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 qty_alert,
                 supplier,
                 img_name: ((_a = req.file) === null || _a === void 0 ? void 0 : _a.filename) || null,
-                status
+                status: 'active'
             });
             res.status(201).json({ "status": "success", "message": "ເພີ່ມສຳເລັດ", data: newProduct });
         }
@@ -59,6 +61,30 @@ const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.addProduct = addProduct;
+const increaseProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { barcode, qty } = req.body;
+        if (!barcode || !qty) {
+            res.status(400).json({ status: "error", message: "Invalid barcode" });
+        }
+        else {
+            const product = yield (0, product_1._findProductByID)(barcode);
+            if (product) {
+                const update = yield (0, product_1._increaseProduct)(barcode, qty);
+                if (update) {
+                    res.status(200).json({ status: "success" });
+                }
+            }
+            else {
+                res.status(400).json({ status: "error", message: "barcode not exits" });
+            }
+        }
+    }
+    catch (error) {
+        res.status(500).json({ status: "error", message: "Failed to delete product", error });
+    }
+});
+exports.increaseProduct = increaseProduct;
 const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { barcode } = req.query;
     if (typeof barcode === "string" && barcode) {
@@ -139,7 +165,7 @@ const findProductByID = (req, res) => __awaiter(void 0, void 0, void 0, function
             res.status(200).json(product);
         }
         else {
-            res.status(200).json([]);
+            res.status(200).json(null);
         }
     }
     catch (error) {
@@ -258,3 +284,13 @@ const findProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.findProduct = findProduct;
+const resetQty = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const update = yield (0, product_1._resetQty)();
+        res.status(200).json(update);
+    }
+    catch (error) {
+        res.status(500).json({ error: error });
+    }
+});
+exports.resetQty = resetQty;

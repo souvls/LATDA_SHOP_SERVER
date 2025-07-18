@@ -41,9 +41,11 @@ const route_admin_1 = __importDefault(require("./route_admin"));
 const router_cashier_1 = __importDefault(require("./router_cashier"));
 const auth_1 = require("../controllers/auth");
 const auth = __importStar(require("../middleware/auth"));
+const exchange_1 = require("../controllers/exchange");
 const router = express_1.default.Router();
 router.post("/login", auth_1.Login);
 router.use("/admin", auth.authenticateToken, auth.authenticateAdmin, route_admin_1.default);
 router.use("/cashier", auth.authenticateToken, auth.authenticateCashier, router_cashier_1.default);
-// router.use("/cashier", router_cashier);
+//gobal
+router.get("/exchange", exchange_1.getExcahnge);
 exports.default = router;

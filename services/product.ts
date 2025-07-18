@@ -67,6 +67,13 @@ export const _addProduct = async (product: ProductAttributes) => {
     throw error;
   }
 };
+export const _increaseProduct = async (barcode: string, qty: number) => {
+  const update = await Product.update({
+    qty_in: Sequelize.literal(`qty_in + ${qty}`),
+    qty_balance: Sequelize.literal('qty_start + qty_in - qty_out')
+  }, { where: { barcode } });
+  return update;
+}
 export const _updateProduct = async (
   barcode: string,
   updateFields: ProductUpdateAttributes
@@ -131,11 +138,11 @@ export const _findProductByID = async (barcode: string) => {
 };
 export const _findProductByIDMath = async (barcode: string) => {
   try {
-    return  await Product.findAll({
+    return await Product.findAll({
       where: {
         barcode: {
           [Op.like]: `%${barcode}%`
-          
+
         }
       }
     });
@@ -207,5 +214,20 @@ export const _findProductByAlertQty = async (qty: number) => {
     });
   } catch (error) {
     throw error;
+  }
+}
+export const _resetQty = async () => {
+  try {
+    const update = await Product.update({
+      qty_start: Sequelize.literal('qty_balance'),
+      qty_in: 0,
+      qty_out: 0,
+      qty_balance: Sequelize.literal('qty_start + qty_in - qty_out')
+    }, {
+      where: {}
+    });
+    return update
+  } catch (error) {
+
   }
 }

@@ -79,6 +79,7 @@ const _createCartItem = (cart_id, product, qty) => __awaiter(void 0, void 0, voi
                 size: product.size,
                 use_for: product.use_for,
                 unit: product.unit,
+                category: product.category,
                 cost_thb: product.cost_thb,
                 cost_lak: product.cost_lak,
                 wholesale_lak: product.wholesale_lak,
@@ -126,6 +127,7 @@ const _updateCart = (cart_id) => __awaiter(void 0, void 0, void 0, function* () 
 const _addToCart = (cashier_id, barcode, qty, cart_name) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const product = yield (0, product_1._findProductByID)(barcode);
+        // console.log(product)
         if (!product) {
             return { status: "error", message: "ບໍ່ພົບສິນຄ້າ" };
         }
@@ -145,6 +147,12 @@ const _addToCart = (cashier_id, barcode, qty, cart_name) => __awaiter(void 0, vo
             yield _updateCart(newCart.id);
         }
         else {
+            const cartItem = cart === null || cart === void 0 ? void 0 : cart.details.find((x) => x.barcode === barcode);
+            if (cartItem) {
+                if (product.qty_balance - (cartItem.qty + qty) < 0) {
+                    return { status: "error", message: "ສິນຄ້າບໍ່ພໍ" };
+                }
+            }
             yield _createCartItem(cart.id, product, qty);
             yield _updateCart(cart.id);
         }

@@ -32,6 +32,7 @@ CartDetail.init({
     title: { type: sequelize_1.DataTypes.STRING, allowNull: true },
     use_for: { type: sequelize_1.DataTypes.STRING, allowNull: true },
     unit: { type: sequelize_1.DataTypes.STRING, allowNull: true },
+    category: { type: sequelize_1.DataTypes.STRING, allowNull: true },
     cost_thb: { type: sequelize_1.DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },
     cost_lak: { type: sequelize_1.DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },
     wholesale_thb: { type: sequelize_1.DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },

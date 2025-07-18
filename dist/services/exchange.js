@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports._getExchange = void 0;
+exports._updateExchange = exports._getExchange = void 0;
 const exchang_1 = __importDefault(require("../models/exchang"));
 const _getExchange = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -24,3 +24,19 @@ const _getExchange = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports._getExchange = _getExchange;
+const _updateExchange = (rate) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield exchang_1.default.update({
+            rate: rate
+        }, {
+            where: {
+                id: 1
+            }
+        });
+        return rate;
+    }
+    catch (error) {
+        throw error;
+    }
+});
+exports._updateExchange = _updateExchange;

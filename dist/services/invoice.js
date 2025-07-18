@@ -12,12 +12,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports._createInvoice = exports._findAllInvoice = exports._cancleInvoice = exports._findInvoiceByID = void 0;
+exports._findAllInvoiceCashier = exports._createInvoice = exports._findAllInvoiceDebt = exports._findAllInvoice = exports._changeStatus = exports._cancleInvoice = exports._findInvoiceByID = void 0;
 const sequelize_1 = require("sequelize");
 const cart_1 = __importDefault(require("../models/cart"));
 const invoice_1 = __importDefault(require("../models/invoice"));
 const invoicedetail_1 = __importDefault(require("../models/invoicedetail"));
 const product_1 = require("./product");
+const getDateNow = () => {
+    const currentDate = new Date();
+    const laoOffset = 7 * 60;
+    const localDate = new Date(currentDate.getTime() + (laoOffset - currentDate.getTimezoneOffset()) * 60000);
+    const formattedDateTime = localDate.toISOString().slice(0, 19).replace('T', ' ');
+    return formattedDateTime;
+};
 const _findInvoiceByID = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         return yield invoice_1.default.findByPk(id, { include: [{ model: invoicedetail_1.default, as: "details" }], });
@@ -39,9 +46,47 @@ const _cancleInvoice = (id) => __awaiter(void 0, void 0, void 0, function* () {
         }
     }
     catch (error) {
+        throw error;
     }
 });
 exports._cancleInvoice = _cancleInvoice;
+const _changeStatus = (id, status) => __awaiter(void 0, void 0, void 0, function* () {
+    var update = true;
+    const invoice = yield (0, exports._findInvoiceByID)(id);
+    if (invoice.status === status) {
+        return { error: "no", message: "wrong status" };
+    }
+    console.log(id, status);
+    if (status === "cancel") {
+        yield (0, exports._cancleInvoice)(id);
+    }
+    else if (status === "completed") {
+        yield invoice_1.default.update({
+            status: status,
+            date_payment: getDateNow()
+        }, {
+            where: { id: id }
+        });
+    }
+    else if (status === "padding") {
+        yield invoice_1.default.update({
+            status: status,
+            date_payment: ''
+        }, {
+            where: { id: id }
+        });
+    }
+    else {
+        update = false;
+    }
+    if (update) {
+        return (0, exports._findInvoiceByID)(id);
+    }
+    else {
+        return { error: "no", message: "wrong status" };
+    }
+});
+exports._changeStatus = _changeStatus;
 const _findAllInvoice = (_date_start, _date_end, _size, _page, _pay_type) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const page = (!_page || _page <= 0) ? 1 : _page;
@@ -59,6 +104,7 @@ const _findAllInvoice = (_date_start, _date_end, _size, _page, _pay_type) => __a
         if (_pay_type) {
             whereClause.pay_type = _pay_type;
         }
+        console.log(whereClause);
         const invoices = yield invoice_1.default.findAndCountAll({
             where: whereClause,
             limit: size,
@@ -79,6 +125,25 @@ const _findAllInvoice = (_date_start, _date_end, _size, _page, _pay_type) => __a
     }
 });
 exports._findAllInvoice = _findAllInvoice;
+const _findAllInvoiceDebt = (_date_start, _date_end) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const date_start = _date_start ? _date_start : new Date();
+        const date_end = _date_end ? _date_end : new Date();
+        return yield invoice_1.default.findAll({
+            where: {
+                date_create: {
+                    [sequelize_1.Op.gte]: new Date(date_start),
+                    [sequelize_1.Op.lte]: new Date(`${date_end}T23:59:59`)
+                },
+                status: 'padding'
+            }
+        });
+    }
+    catch (error) {
+        return error;
+    }
+});
+exports._findAllInvoiceDebt = _findAllInvoiceDebt;
 const _createInvoice = (cart, member_id, m_discount, pay_type, money_received) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         //giam so luong
@@ -88,6 +153,7 @@ const _createInvoice = (cart, member_id, m_discount, pay_type, money_received) =
         const localDate = new Date(currentDate.getTime() + (laoOffset - currentDate.getTimezoneOffset()) * 60000);
         // Chuyển đổi sang định dạng YYYY-MM-DD HH:MM:SS
         const formattedDateTime = localDate.toISOString().slice(0, 19).replace('T', ' ');
+        const total_checkout_lak = cart.total_lak - m_discount;
         const newInvoice = yield invoice_1.default.create({
             cashier_id: cart.cashier_id,
             member_id: member_id,
@@ -95,15 +161,16 @@ const _createInvoice = (cart, member_id, m_discount, pay_type, money_received) =
             total_unit_lak: cart.total_unit_lak,
             total_unit_thb: cart.total_unit_thb,
             total_lak: cart.total_lak,
-            total_thb: cart.total_lak,
-            total_checkout_lak: cart.total_lak - m_discount,
+            total_thb: 0,
+            total_checkout_lak: total_checkout_lak,
             total_checkout_thb: 0,
             rate: cart.rate,
             m_discount: m_discount,
             pay_type: pay_type,
+            date_payment: pay_type !== "debt" ? formattedDateTime : "",
             date_create: formattedDateTime,
             money_received: money_received,
-            money_cash: money_received - cart.total_lak - m_discount,
+            money_cash: pay_type !== "debt" ? money_received - total_checkout_lak : 0,
             status: pay_type === 'debt' ? 'padding' : 'completed'
         });
         //
@@ -117,6 +184,7 @@ const _createInvoice = (cart, member_id, m_discount, pay_type, money_received) =
                     title: i.title,
                     use_for: i.use_for,
                     unit: i.unit,
+                    category: i.category,
                     cost_thb: i.cost_thb,
                     cost_lak: i.cost_lak,
                     wholesale_thb: i.wholesale_thb,
@@ -141,3 +209,38 @@ const _createInvoice = (cart, member_id, m_discount, pay_type, money_received) =
     }
 });
 exports._createInvoice = _createInvoice;
+//cashier
+const _findAllInvoiceCashier = (cashier_id, _date_start, _date_end, _size, _page) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const page = (!_page || _page <= 0) ? 1 : _page;
+        const size = (!_size || _size <= 0) ? 50 : _size;
+        const date_start = _date_start ? _date_start : new Date();
+        const date_end = _date_end ? _date_end : new Date();
+        // Khởi tạo điều kiện where
+        const whereClause = {
+            date_create: {
+                [sequelize_1.Op.gte]: new Date(date_start),
+                [sequelize_1.Op.lte]: new Date(`${date_end}T23:59:59`)
+            },
+            cashier_id: cashier_id
+        };
+        const invoices = yield invoice_1.default.findAndCountAll({
+            where: whereClause,
+            limit: size,
+            offset: (page - 1) * size,
+            order: [['date_create', 'DESC']],
+            include: [{ model: invoicedetail_1.default, as: "details" }]
+        });
+        return {
+            invoices: invoices.rows,
+            length: invoices.count,
+            totalPages: Math.ceil(invoices.count / size),
+            currentPage: page,
+        };
+    }
+    catch (error) {
+        console.error('Error fetching invoices:', error);
+        throw error;
+    }
+});
+exports._findAllInvoiceCashier = _findAllInvoiceCashier;

@@ -12,6 +12,7 @@ export const addToCart = async (req: Request, res: Response) => {
         const cart = await _addToCart((req as any).userid, barcode.trim(), qty, cart_name);
         res.status(200).json(cart);
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: error });
     }
 };

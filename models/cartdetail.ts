@@ -10,6 +10,7 @@ interface CartDetailAttributes {
     title: string,
     use_for: string | "",
     unit: string,
+    category: string,
     cost_thb: number | 0;
     cost_lak: number | 0;
     wholesale_thb: number | 0;
@@ -48,6 +49,7 @@ CartDetail.init(
         title: { type: DataTypes.STRING, allowNull: true },
         use_for: { type: DataTypes.STRING, allowNull: true },
         unit: { type: DataTypes.STRING, allowNull: true },
+        category: { type: DataTypes.STRING, allowNull: true },
         cost_thb: { type: DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },
         cost_lak: { type: DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },
         wholesale_thb: { type: DataTypes.DOUBLE, allowNull: true, defaultValue: 0 },

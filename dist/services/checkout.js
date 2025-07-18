@@ -18,8 +18,11 @@ const _retail = (cashier_id, cart_name, m_discount, pay_type, member_id, money_r
         if (!cart) {
             return { status: "error", message: "ບໍ່ພົບກະຕ່າ" };
         }
-        if ((cart.total_lak - m_discount) > money_received) {
-            return { "status": "error", message: "ເງິນຮັບມານ້ອຍກວ່າລາຄາສິນຄ້າ" };
+        if (pay_type != "debt") {
+            if ((cart.total_lak - m_discount) > money_received) {
+                console.log("total", cart.total_lak);
+                return { "status": "error", message: "ເງິນຮັບມານ້ອຍກວ່າລາຄາສິນຄ້າ" };
+            }
         }
         if (m_discount > cart.total_lak) {
             return { "status": "error", message: "ຈຳນວນຫຼຸດ ຫຼາຍກວ່າ ລາຄາສິນຄ້າ" };

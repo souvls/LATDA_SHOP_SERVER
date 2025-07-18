@@ -8,3 +8,19 @@ export const _getExchange = async () => {
         throw error;
     }
 }
+export const _updateExchange = async (rate: number) => {
+    try {
+        await Exchange.update({
+            rate: rate
+        },
+            {
+                where: {
+                    id: 1
+                }
+            }
+        )
+        return rate
+    } catch (error) {
+        throw error;
+    }
+}

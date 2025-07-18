@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports._findProductByAlertQty = exports._checkoutProduct = exports._findProductByNo = exports._findProductByPage = exports._findProductByTitle = exports._findProductByCode = exports._findProductByIDMath = exports._findProductByID = exports._insertProduct = exports._findAllProduct = exports._deleteProduct = exports._updateIMGProduct = exports._updateProduct = exports._addProduct = void 0;
+exports._resetQty = exports._findProductByAlertQty = exports._checkoutProduct = exports._findProductByNo = exports._findProductByPage = exports._findProductByTitle = exports._findProductByCode = exports._findProductByIDMath = exports._findProductByID = exports._insertProduct = exports._findAllProduct = exports._deleteProduct = exports._updateIMGProduct = exports._updateProduct = exports._increaseProduct = exports._addProduct = void 0;
 const sequelize_1 = require("sequelize");
 const product_1 = __importDefault(require("../models/product"));
 const _addProduct = (product) => __awaiter(void 0, void 0, void 0, function* () {
@@ -28,6 +28,14 @@ const _addProduct = (product) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports._addProduct = _addProduct;
+const _increaseProduct = (barcode, qty) => __awaiter(void 0, void 0, void 0, function* () {
+    const update = yield product_1.default.update({
+        qty_in: sequelize_1.Sequelize.literal(`qty_in + ${qty}`),
+        qty_balance: sequelize_1.Sequelize.literal('qty_start + qty_in - qty_out')
+    }, { where: { barcode } });
+    return update;
+});
+exports._increaseProduct = _increaseProduct;
 const _updateProduct = (barcode, updateFields) => __awaiter(void 0, void 0, void 0, function* () {
     const update = yield product_1.default.update(updateFields, { where: { barcode } });
     return update;
@@ -180,3 +188,19 @@ const _findProductByAlertQty = (qty) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports._findProductByAlertQty = _findProductByAlertQty;
+const _resetQty = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const update = yield product_1.default.update({
+            qty_start: sequelize_1.Sequelize.literal('qty_balance'),
+            qty_in: 0,
+            qty_out: 0,
+            qty_balance: sequelize_1.Sequelize.literal('qty_start + qty_in - qty_out')
+        }, {
+            where: {}
+        });
+        return update;
+    }
+    catch (error) {
+    }
+});
+exports._resetQty = _resetQty;

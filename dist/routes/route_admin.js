@@ -45,6 +45,7 @@ const controllerReport = __importStar(require("../controllers/report"));
 const router = express_1.default.Router();
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
+const exchange_1 = require("../controllers/exchange");
 const storage = multer_1.default.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');
@@ -57,13 +58,15 @@ const storage = multer_1.default.diskStorage({
 });
 const upload = (0, multer_1.default)({ storage });
 //report
-router.get("/sale-report", controllerReport.SaleReport);
-router.get("/warehouse", controllerReport.GetWarehouse);
+router.get("/report-sale", controllerReport.GetReportSale);
+router.get("/report-product", controllerReport.GetReportProduct);
 //product 
 router.post("/product/add", upload.single('image'), controllerProduct.addProduct);
+router.post("/product/increase", controllerProduct.increaseProduct);
 router.put("/product/updateimg", upload.single('image'), controllerProduct.updateIMGProduct);
 router.patch("/product/update", controllerProduct.updateProduct);
 router.delete("/product/delete", controllerProduct.deleteProduct);
+router.put("/product/reset-qty", controllerProduct.resetQty);
 router.get("/products", controllerProduct.getAllProduct);
 router.get("/productid", controllerProduct.findProductByID);
 router.get("/findproduct", controllerProduct.findProduct);
@@ -77,4 +80,7 @@ router.delete("/user/delete", controllerUser.deleteUser);
 router.get("/invoices", controllerInvoice.findAllInvoice);
 router.get("/invoice", controllerInvoice.findInvoiceByID);
 router.delete("/invoice", controllerInvoice.cancleInvoice);
+router.put("/invoice/changestatus", controllerInvoice.changestatus);
+//change exchange rate
+router.put("/exchange", exchange_1.updateExcahnge);
 exports.default = router;

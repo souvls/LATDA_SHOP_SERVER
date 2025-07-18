@@ -4,6 +4,13 @@ import Invoice from "../models/invoice"
 import InvoiceDetail from "../models/invoicedetail";
 import { _checkoutProduct } from "./product";
 
+const getDateNow = () => {
+    const currentDate = new Date();
+    const laoOffset = 7 * 60;
+    const localDate = new Date(currentDate.getTime() + (laoOffset - currentDate.getTimezoneOffset()) * 60000);
+    const formattedDateTime = localDate.toISOString().slice(0, 19).replace('T', ' ');
+    return formattedDateTime;
+}
 export const _findInvoiceByID = async (id: number) => {
     try {
         return await Invoice.findByPk(
@@ -15,6 +22,7 @@ export const _findInvoiceByID = async (id: number) => {
     }
 
 }
+
 export const _cancleInvoice = async (id: number) => {
     try {
         const row = await Invoice.update(
@@ -29,10 +37,45 @@ export const _cancleInvoice = async (id: number) => {
         }
 
     } catch (error) {
-
+        throw error
     }
 }
-export const _findAllInvoice = async (_date_start: string, _date_end: string, _size: number, _page: number, _pay_type?: string) => {
+export const _changeStatus = async (id: number, status: string) => {
+    var update = true;
+    const invoice: any = await _findInvoiceByID(id);
+    if (invoice.status === status) {
+        return { error: "no", message: "wrong status" }
+    }
+    console.log(id, status)
+    if (status === "cancel") {
+        await _cancleInvoice(id);
+    }
+    else if (status === "completed") {
+        await Invoice.update({
+            status: status,
+            date_payment: getDateNow()
+        }, {
+            where: { id: id }
+        });
+    } else if (status === "padding") {
+        await Invoice.update({
+            status: status,
+            date_payment: ''
+        }, {
+            where: { id: id }
+        });
+    } else {
+        update = false
+    }
+    if (update) {
+        return _findInvoiceByID(id);
+    } else {
+        return { error: "no", message: "wrong status" }
+    }
+
+
+}
+export const _findAllInvoice = async (_date_start: string, _date_end: string, _size: number, _page: number, _pay_type: string) => {
     try {
         const page = (!_page || _page <= 0) ? 1 : _page;
         const size = (!_size || _size <= 0) ? 100 : _size;
@@ -51,7 +94,7 @@ export const _findAllInvoice = async (_date_start: string, _date_end: string, _s
         if (_pay_type) {
             whereClause.pay_type = _pay_type;
         }
-
+        console.log(whereClause)
         const invoices = await Invoice.findAndCountAll({
             where: whereClause,
             limit: size,
@@ -71,6 +114,26 @@ export const _findAllInvoice = async (_date_start: string, _date_end: string, _s
         throw error
     }
 }
+export const _findAllInvoiceDebt = async (_date_start: string, _date_end: string) => {
+    try {
+        const date_start = _date_start ? _date_start : new Date();
+        const date_end = _date_end ? _date_end : new Date();
+        return await Invoice.findAll(
+            {
+                where: {
+                    date_create: {
+                        [Op.gte]: new Date(date_start),
+                        [Op.lte]: new Date(`${date_end}T23:59:59`)
+                    },
+                    status: 'padding'
+                }
+            }
+        )
+
+    } catch (error) {
+        return error
+    }
+}
 export const _createInvoice = async (cart: any, member_id: string, m_discount: number, pay_type: string, money_received: number) => {
     try {
 
@@ -83,6 +146,7 @@ export const _createInvoice = async (cart: any, member_id: string, m_discount: n
         // Chuyển đổi sang định dạng YYYY-MM-DD HH:MM:SS
         const formattedDateTime = localDate.toISOString().slice(0, 19).replace('T', ' ');
 
+        const total_checkout_lak = cart.total_lak - m_discount;
         const newInvoice: any = await Invoice.create({
             cashier_id: cart.cashier_id,
             member_id: member_id,
@@ -90,15 +154,16 @@ export const _createInvoice = async (cart: any, member_id: string, m_discount: n
             total_unit_lak: cart.total_unit_lak,
             total_unit_thb: cart.total_unit_thb,
             total_lak: cart.total_lak,
-            total_thb: cart.total_lak,
-            total_checkout_lak: cart.total_lak - m_discount,
+            total_thb: 0,
+            total_checkout_lak: total_checkout_lak,
             total_checkout_thb: 0,
             rate: cart.rate,
             m_discount: m_discount,
             pay_type: pay_type,
+            date_payment: pay_type !== "debt" ? formattedDateTime : "",
             date_create: formattedDateTime,
             money_received: money_received,
-            money_cash: money_received - cart.total_lak - m_discount,
+            money_cash: pay_type !== "debt" ? money_received - total_checkout_lak : 0,
             status: pay_type === 'debt' ? 'padding' : 'completed'
         })
         //
@@ -112,6 +177,7 @@ export const _createInvoice = async (cart: any, member_id: string, m_discount: n
                     title: i.title,
                     use_for: i.use_for,
                     unit: i.unit,
+                    category: i.category,
                     cost_thb: i.cost_thb,
                     cost_lak: i.cost_lak,
                     wholesale_thb: i.wholesale_thb,
@@ -133,4 +199,40 @@ export const _createInvoice = async (cart: any, member_id: string, m_discount: n
     } catch (error) {
         throw error;
     }
+}
+//cashier
+export const _findAllInvoiceCashier = async (cashier_id: string, _date_start: string, _date_end: string, _size: number, _page: number) => {
+    try {
+        const page = (!_page || _page <= 0) ? 1 : _page;
+        const size = (!_size || _size <= 0) ? 50 : _size;
+        const date_start = _date_start ? _date_start : new Date();
+        const date_end = _date_end ? _date_end : new Date();
+
+        // Khởi tạo điều kiện where
+        const whereClause: any = {
+            date_create: {
+                [Op.gte]: new Date(date_start),
+                [Op.lte]: new Date(`${date_end}T23:59:59`)
+            },
+            cashier_id: cashier_id
+        };
+        const invoices = await Invoice.findAndCountAll({
+            where: whereClause,
+            limit: size,
+            offset: (page - 1) * size,
+            order: [['date_create', 'DESC']],
+            include: [{ model: InvoiceDetail, as: "details" }]
+        });
+
+        return {
+            invoices: invoices.rows,
+            length: invoices.count,
+            totalPages: Math.ceil(invoices.count / size),
+            currentPage: page,
+        };
+    } catch (error) {
+        console.error('Error fetching invoices:', error);
+        throw error
+    }
+
 }

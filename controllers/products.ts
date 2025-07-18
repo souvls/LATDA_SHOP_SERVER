@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
-import { _addProduct, _deleteProduct, _findAllProduct, _findProductByAlertQty, _findProductByCode, _findProductByID, _findProductByIDMath, _findProductByNo, _findProductByPage, _findProductByTitle, _insertProduct, _updateIMGProduct, _updateProduct } from "../services/product";
-import path from "path";
-import fs from 'fs';
+import { _addProduct, _deleteProduct, _findAllProduct, _findProductByAlertQty, _findProductByCode, _findProductByID, _findProductByIDMath, _findProductByNo, _findProductByPage, _findProductByTitle, _increaseProduct, _insertProduct, _resetQty, _updateIMGProduct, _updateProduct } from "../services/product";
 import { _removeIMG } from "../services/image";
+import { v4 as uuidv4 } from 'uuid';
+import { deleteImageFromS3, uploadImageToS3 } from "../services/aws_s3";
+
 
 export const addProduct = async (req: Request, res: Response) => {
     const {
@@ -30,13 +31,16 @@ export const addProduct = async (req: Request, res: Response) => {
         qty_balance,
         qty_alert,
         supplier,
-        status
+        // status
     } = req.body;
 
     try {
         // if (!barcode) { return res.status(500).json({ error: "vilid barcodeF" }); }
         const product = await _findProductByID(barcode);
         if (!product) {
+            const file: any = req.file;
+            const fileExtension = file.originalname.split('.').pop();
+            const uniqueFileName = `${uuidv4()}.${fileExtension}`;
             const newProduct = await _addProduct({
                 barcode,
                 page,
@@ -62,10 +66,18 @@ export const addProduct = async (req: Request, res: Response) => {
                 qty_balance,
                 qty_alert,
                 supplier,
-                img_name: req.file?.filename || null,
-                status
+                img_name: uniqueFileName || null,
+                status: 'active'
             });
-            res.status(201).json({ "status": "success", "message": "ເພີ່ມສຳເລັດ", data: newProduct });
+            if (file) {
+                const upload = await uploadImageToS3(file, uniqueFileName);
+                if (upload) {
+                    res.status(201).json({ "status": "success", "message": "ເພີ່ມສຳເລັດ", data: newProduct });
+                } else {
+                    res.status(500).send('Failed to upload image.');
+                }
+            }
+
         } else {
             res.status(200).json({ "status": "error", "message": "ມີສິນຄ້າແລ້ວ" });
         }
@@ -74,7 +86,28 @@ export const addProduct = async (req: Request, res: Response) => {
         res.status(500).json({ error: error });
     }
 };
+export const increaseProduct = async (req: Request, res: Response) => {
+    try {
+        const { barcode, qty } = req.body
+        if (!barcode || !qty) {
+            res.status(400).json({ status: "error", message: "Invalid barcode" });
+        } else {
+            const product = await _findProductByID(barcode);
+            if (product) {
+                const update = await _increaseProduct(barcode, qty);
+                if (update) {
+                    res.status(200).json({ status: "success" });
+                }
+            } else {
+                res.status(400).json({ status: "error", message: "barcode not exits" });
+            }
 
+        }
+
+    } catch (error) {
+        res.status(500).json({ status: "error", message: "Failed to delete product", error });
+    }
+}
 export const deleteProduct = async (req: Request, res: Response) => {
     const { barcode } = req.query;
     if (typeof barcode === "string" && barcode) {
@@ -86,7 +119,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
 
                 //delete img
                 if (product.img_name) {
-                    _removeIMG(product.img_name);
+                    await deleteImageFromS3(product.img_name);
                 }
                 res.status(200).json({ status: "success", message: "ລົບສຳເລັດ", data: result });
             } else {
@@ -102,19 +135,30 @@ export const deleteProduct = async (req: Request, res: Response) => {
 }
 export const updateIMGProduct = async (req: Request, res: Response) => {
     const { barcode } = req.query
-    const img_name = req.file?.filename || null;
     if (typeof barcode === "string" && barcode) {
         const product: any = await _findProductByID(barcode);
         if (product) {
-            const update = await _updateIMGProduct(barcode, img_name);
             if (req.file?.filename !== null) {
-                if (product.img_name) {
-                    _removeIMG(product.img_name)
+                const file: any = req.file;
+                try {
+                    if (product.img_name) {
+                        await uploadImageToS3(file, product.img_name);
+                    } else {
+                        const fileExtension = file.originalname.split('.').pop();
+                        const uniqueFileName = `${uuidv4()}.${fileExtension}`;
+                        await uploadImageToS3(file, uniqueFileName);
+                        await _updateIMGProduct(product.barcode, uniqueFileName);
+                    }
+                    res.status(200).json({ status: "success", message: "ອັບເດດສຳເລັດ" });
+                } catch (error) {
+                    res.status(400).json({ status: "no", message: error });
                 }
-            };
-            res.status(200).json({ status: "success", message: "ອັບເດດສຳເລັດ", data: update });
+            } else {
+                res.status(400).json({ status: "error", message: "invilad img" });
+
+            }
         } else {
-            res.status(200).json({ status: "error", message: "ບໍ່ພົນສິນຄ້າ", data: [] });
+            res.status(400).json({ status: "error", message: "ບໍ່ພົນສິນຄ້າ" });
         }
     }
 }
@@ -147,7 +191,7 @@ export const findProductByID = async (req: Request, res: Response) => {
         if (product) {
             res.status(200).json(product);
         } else {
-            res.status(200).json([]);
+            res.status(200).json(null);
         }
     } catch (error) {
         res.status(500).json({ error: error });
@@ -212,37 +256,37 @@ export const findProduct = async (req: Request, res: Response) => {
 
         if (barcode) {
             const pd = await _findProductByIDMath(barcode as string);
-            if (pd && pd.length > 0) { 
+            if (pd && pd.length > 0) {
                 products.push(...pd);
             }
         }
         if (title) {
             const pd = await _findProductByTitle(title as string);
-            if (pd && pd.length > 0) { 
+            if (pd && pd.length > 0) {
                 products.push(...pd);
             }
         }
         if (code) {
             const pd = await _findProductByCode(code as string);
-            if (pd && pd.length > 0) { 
+            if (pd && pd.length > 0) {
                 products.push(...pd);
             }
         }
         if (page) {
             const pd = await _findProductByPage(page as string)
-            if (pd && pd.length > 0) { 
+            if (pd && pd.length > 0) {
                 products.push(...pd);
             }
         }
         if (No) {
             const pd = await _findProductByNo(No as string);
-            if (pd && pd.length > 0) { 
+            if (pd && pd.length > 0) {
                 products.push(...pd);
             }
         }
         if (qty) {
             const pd = await _findProductByAlertQty(Number(qty));
-            if (pd && pd.length > 0) { 
+            if (pd && pd.length > 0) {
                 products.push(...pd);
             }
         }
@@ -251,4 +295,14 @@ export const findProduct = async (req: Request, res: Response) => {
         res.status(500).json({ error: error });
     }
 };
+export const resetQty = async (req: Request, res: Response) => {
+    try {
+        const update = await _resetQty()
+        res.status(200).json(update);
+    } catch (error) {
+        res.status(500).json({ error: error });
+
+    }
+}
+
 

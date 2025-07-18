@@ -5,6 +5,8 @@ import * as controllerExchange from '../controllers/exchange';
 import * as controllerCart from '../controllers/cart'
 import * as controllerCheckout from '../controllers/checkout'
 import * as controllerInvoice from '../controllers/invoice'
+import * as controllerReport from '../controllers/report'
+
 const router = express.Router();
 
 router.get("/exchange", controllerExchange.getExcahnge)
@@ -26,8 +28,9 @@ router.post("/checkout/retail", controllerCheckout.retailCart);
 router.delete("/cart/delete", controllerCart.removeProductFromCart);
 
 //invoice 
-router.post("/invoice", controllerInvoice.findAllInvoice)
+router.get("/report-sale", controllerReport.GetCashierReportSale)
+router.get("/invoices", controllerInvoice.findAllInvoiceCashier)
 router.get("/invoice", controllerInvoice.findInvoiceByID)
-router.post("/invoice/cancel", controllerInvoice.cancleInvoice)
+router.delete("/invoice/cancel", controllerInvoice.cancleInvoiceCashier)
 
 export default router;

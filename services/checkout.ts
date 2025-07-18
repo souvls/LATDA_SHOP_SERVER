@@ -7,8 +7,11 @@ export const _retail = async (cashier_id: string, cart_name: number, m_discount:
         if (!cart) {
             return { status: "error", message: "ບໍ່ພົບກະຕ່າ" }
         }
-        if ((cart.total_lak - m_discount) > money_received) {
-            return { "status": "error", message: "ເງິນຮັບມານ້ອຍກວ່າລາຄາສິນຄ້າ" };
+        if (pay_type != "debt") {
+            if ((cart.total_lak - m_discount) > money_received) {
+                console.log("total",cart.total_lak)
+                return { "status": "error", message: "ເງິນຮັບມານ້ອຍກວ່າລາຄາສິນຄ້າ" };
+            }
         }
         if (m_discount > cart.total_lak) {
             return { "status": "error", message: "ຈຳນວນຫຼຸດ ຫຼາຍກວ່າ ລາຄາສິນຄ້າ" };

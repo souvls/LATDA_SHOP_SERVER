@@ -9,15 +9,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getExcahnge = void 0;
+exports.updateExcahnge = exports.getExcahnge = void 0;
 const exchange_1 = require("../services/exchange");
 const getExcahnge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const exchange = yield (0, exchange_1._getExchange)();
-        res.status(200).json(exchange);
+        res.status(200).json({ rate: exchange });
     }
     catch (error) {
         res.status(500).json({ error: error });
     }
 });
 exports.getExcahnge = getExcahnge;
+const updateExcahnge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { newRate } = req.body;
+        if (!newRate || newRate < 0) {
+            res.status(400).json({ "status": "error", "message": "wrong rate" });
+            return;
+        }
+        const update = yield (0, exchange_1._updateExchange)(newRate);
+        res.status(200).json({ newRate: update });
+    }
+    catch (error) {
+        res.status(500).json({ error: error });
+    }
+});
+exports.updateExcahnge = updateExcahnge;

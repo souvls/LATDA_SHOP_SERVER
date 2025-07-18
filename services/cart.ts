@@ -63,6 +63,7 @@ const _createCartItem = async (cart_id: number, product: any, qty: number) => {
                 size: product.size,
                 use_for: product.use_for,
                 unit: product.unit,
+                category:product.category,
                 cost_thb: product.cost_thb,
                 cost_lak: product.cost_lak,
                 wholesale_lak: product.wholesale_lak,
@@ -116,7 +117,7 @@ const _updateCart = async (cart_id: number) => {
 export const _addToCart = async (cashier_id: string, barcode: string, qty: number, cart_name: number) => {
     try {
         const product: any = await _findProductByID(barcode);
-
+        // console.log(product)
         if (!product) {
             return { status: "error", message: "ບໍ່ພົບສິນຄ້າ" }
         }
@@ -126,10 +127,12 @@ export const _addToCart = async (cashier_id: string, barcode: string, qty: numbe
         if (product.qty_balance - qty < 0) {
             return { status: "error", message: "ສິນຄ້າບໍ່ພໍ" }
         }
+
         if (product.status === "0") {
             return { status: "error", message: "ສິນຄ້າຢຸດຂາຍ" }
         }
         const cart: any = await _findCart(cashier_id, cart_name);
+
 
         if (!cart) {
             const newCart: any = await _createCart(cashier_id, cart_name);
@@ -137,6 +140,12 @@ export const _addToCart = async (cashier_id: string, barcode: string, qty: numbe
             await _updateCart(newCart.id)
         }
         else {
+            const cartItem = cart?.details.find((x: any) => x.barcode === barcode);
+            if (cartItem) {
+                if (product.qty_balance - (cartItem.qty + qty) < 0) {
+                    return { status: "error", message: "ສິນຄ້າບໍ່ພໍ" }
+                }
+            }
             await _createCartItem(cart.id, product, qty);
             await _updateCart(cart.id);
         }

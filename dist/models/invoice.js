@@ -55,6 +55,9 @@ Invoice.init({
     pay_type: {
         type: sequelize_1.DataTypes.STRING
     },
+    date_payment: {
+        type: sequelize_1.DataTypes.DATE
+    },
     date_create: {
         type: sequelize_1.DataTypes.DATE
     },
